@@ -40,7 +40,7 @@ export function generateSTL(layers: { points: Point2D[], height: number, holes?:
 
       // To handle holes reliably, we subdivide each radial sector into small quads
       // and only draw those that are not inside a hole.
-      const radialSteps = 50;
+      const radialSteps = 200; // High resolution for 3D printing
       for (let j = 0; j < radialSteps; j++) {
         const rStart = j / radialSteps;
         const rEnd = (j + 1) / radialSteps;
@@ -125,18 +125,22 @@ export function generateSTL(layers: { points: Point2D[], height: number, holes?:
         const hC2x = hole.x + cos2 * hole.r;
         const hC2y = hole.y + sin2 * hole.r;
 
+        // Piercing walls to ensure slicers perceive a hole even with slightly non-watertight face subdivision
+        const zStart = -0.05;
+        const zEnd = height + 0.05;
+
         if (chamferDepth > 0) {
           // Bottom to Chamfer Start (Normals pointing INWARDS towards center)
-          stl += writeFacet([hB1x, hB1y, 0], [hC1x, hC1y, zChamfer], [hB2x, hB2y, 0]);
-          stl += writeFacet([hB2x, hB2y, 0], [hC1x, hC1y, zChamfer], [hC2x, hC2y, zChamfer]);
+          stl += writeFacet([hB1x, hB1y, zStart], [hC1x, hC1y, zChamfer], [hB2x, hB2y, zStart]);
+          stl += writeFacet([hB2x, hB2y, zStart], [hC1x, hC1y, zChamfer], [hC2x, hC2y, zChamfer]);
 
           // Chamfer Face (Normals pointing INWARDS and UP)
-          stl += writeFacet([hC1x, hC1y, zChamfer], [hT1x, hT1y, height], [hC2x, hC2y, zChamfer]);
-          stl += writeFacet([hC2x, hC2y, zChamfer], [hT1x, hT1y, height], [hT2x, hT2y, height]);
+          stl += writeFacet([hC1x, hC1y, zChamfer], [hT1x, hT1y, zEnd], [hC2x, hC2y, zChamfer]);
+          stl += writeFacet([hC2x, hC2y, zChamfer], [hT1x, hT1y, zEnd], [hT2x, hT2y, zEnd]);
         } else {
           // Simple cylinder (Normals pointing INWARDS)
-          stl += writeFacet([hB1x, hB1y, 0], [hB1x, hB1y, height], [hB2x, hB2y, 0]);
-          stl += writeFacet([hB2x, hB2y, 0], [hB1x, hB1y, height], [hB2x, hB2y, height]);
+          stl += writeFacet([hB1x, hB1y, zStart], [hB1x, hB1y, zEnd], [hB2x, hB2y, zStart]);
+          stl += writeFacet([hB2x, hB2y, zStart], [hB1x, hB1y, zEnd], [hB2x, hB2y, zEnd]);
         }
       }
     });

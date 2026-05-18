@@ -793,7 +793,7 @@ export default function App() {
       }).join('\n');
     }).join('\n');
 
-    return `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">${svgPaths}</svg>`;
+    return `<svg width="${width}mm" height="${height}mm" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">${svgPaths}</svg>`;
   };
 
   const generatePartsSvg = () => {
@@ -837,7 +837,7 @@ export default function App() {
     }).join('\n');
     
     return `
-      <svg width="${totalWidth + 20}" height="${totalHeight + 20}" viewBox="${viewBoxX} ${viewBoxY} ${totalWidth + 20} ${totalHeight + 20}" xmlns="http://www.w3.org/2000/svg">
+      <svg width="${totalWidth + 20}mm" height="${totalHeight + 20}mm" viewBox="${viewBoxX} ${viewBoxY} ${totalWidth + 20} ${totalHeight + 20}" xmlns="http://www.w3.org/2000/svg">
         <desc>Kapiti Libraries SpiroForge - Laser Cut Template</desc>
         <!-- Ring System -->
         <path d="${ringPath} ${extRingPath}" fill="none" stroke="red" stroke-width="0.12" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round" />
@@ -1020,53 +1020,64 @@ export default function App() {
             </div>
           </section>
 
-          {layers.length > 1 && (
-            <section>
-              <h2 className="text-[11px] uppercase tracking-widest text-amber-500/80 mb-6 font-bold flex items-center gap-2 pt-4 border-t border-white/5">
-                <Maximize2 className="w-3.5 h-3.5" /> Transform Configuration
-              </h2>
-              <div className="space-y-6">
-                <div className="space-y-3">
-                  <div className="flex justify-between text-[10px] uppercase font-mono">
-                    <span className="text-slate-400">Position X</span>
-                    <input 
-                      type="number" 
-                      value={params.offsetX?.toFixed(1)} 
-                      onChange={(e) => updateParams({ offsetX: parseFloat(e.target.value) || 0 })}
-                      onBlur={saveHistory}
-                      className="bg-transparent text-white w-14 text-right focus:outline-none"
-                    />
-                  </div>
-                  <input 
-                    type="range" min="-200" max="200" step="0.5" 
-                    value={params.offsetX || 0} 
-                    onChange={(e) => updateParams({ offsetX: parseFloat(e.target.value) })}
-                    onPointerUp={saveHistory}
-                    className="w-full accent-amber-500 h-1 bg-white/10 rounded-full appearance-none cursor-pointer"
-                  />
+          <section>
+            <h2 className="text-[11px] uppercase tracking-widest text-amber-500/80 mb-6 font-bold flex items-center gap-2 pt-4 border-t border-white/5">
+              <Maximize2 className="w-3.5 h-3.5" /> Transform Configuration
+            </h2>
+            <div className="space-y-6">
+              <div className="space-y-3">
+                <div className="flex justify-between text-[10px] uppercase font-mono">
+                  <span className="text-slate-400">Global Scale</span>
+                  <span className="text-amber-500">{(params.scale * 100).toFixed(0)}%</span>
                 </div>
-                <div className="space-y-3">
-                  <div className="flex justify-between text-[10px] uppercase font-mono">
-                    <span className="text-slate-400">Position Y</span>
-                    <input 
-                      type="number" 
-                      value={params.offsetY?.toFixed(1)} 
-                      onChange={(e) => updateParams({ offsetY: parseFloat(e.target.value) || 0 })}
-                      onBlur={saveHistory}
-                      className="bg-transparent text-white w-14 text-right focus:outline-none"
-                    />
-                  </div>
-                  <input 
-                    type="range" min="-200" max="200" step="0.5" 
-                    value={params.offsetY || 0} 
-                    onChange={(e) => updateParams({ offsetY: parseFloat(e.target.value) })}
-                    onPointerUp={saveHistory}
-                    className="w-full accent-amber-500 h-1 bg-white/10 rounded-full appearance-none cursor-pointer"
-                  />
-                </div>
+                <input 
+                  type="range" min="0.1" max="3.0" step="0.05" 
+                  value={params.scale || 1.0} 
+                  onChange={(e) => updateParams({ scale: parseFloat(e.target.value) || 1.0 })}
+                  onPointerUp={saveHistory}
+                  className="w-full accent-amber-500 h-1 bg-white/10 rounded-full appearance-none cursor-pointer"
+                />
               </div>
-            </section>
-          )}
+              <div className="space-y-3">
+                <div className="flex justify-between text-[10px] uppercase font-mono">
+                  <span className="text-slate-400">Position X</span>
+                  <input 
+                    type="number" 
+                    value={params.offsetX?.toFixed(1)} 
+                    onChange={(e) => updateParams({ offsetX: parseFloat(e.target.value) || 0 })}
+                    onBlur={saveHistory}
+                    className="bg-transparent text-white w-14 text-right focus:outline-none"
+                  />
+                </div>
+                <input 
+                  type="range" min="-200" max="200" step="0.5" 
+                  value={params.offsetX || 0} 
+                  onChange={(e) => updateParams({ offsetX: parseFloat(e.target.value) })}
+                  onPointerUp={saveHistory}
+                  className="w-full accent-amber-500 h-1 bg-white/10 rounded-full appearance-none cursor-pointer"
+                />
+              </div>
+              <div className="space-y-3">
+                <div className="flex justify-between text-[10px] uppercase font-mono">
+                  <span className="text-slate-400">Position Y</span>
+                  <input 
+                    type="number" 
+                    value={params.offsetY?.toFixed(1)} 
+                    onChange={(e) => updateParams({ offsetY: parseFloat(e.target.value) || 0 })}
+                    onBlur={saveHistory}
+                    className="bg-transparent text-white w-14 text-right focus:outline-none"
+                  />
+                </div>
+                <input 
+                  type="range" min="-200" max="200" step="0.5" 
+                  value={params.offsetY || 0} 
+                  onChange={(e) => updateParams({ offsetY: parseFloat(e.target.value) })}
+                  onPointerUp={saveHistory}
+                  className="w-full accent-amber-500 h-1 bg-white/10 rounded-full appearance-none cursor-pointer"
+                />
+              </div>
+            </div>
+          </section>
 
           <section>
             <h2 className="text-[11px] uppercase tracking-widest text-amber-500/80 mb-6 font-bold flex items-center gap-2 pt-4 border-t border-white/5">
@@ -1079,6 +1090,9 @@ export default function App() {
                 <div className="flex justify-between text-[10px] uppercase tracking-wider">
                   <label className="text-slate-400">Nominal Ring Size</label>
                   <div className="flex gap-2 items-center">
+                    <span className="text-amber-500/80 font-mono bg-amber-500/5 px-1.5 rounded border border-amber-500/10">
+                      {(params.ringTeeth * 6 / Math.PI * (params.scale || 1.0)).toFixed(1)}mm Ø
+                    </span>
                     {params.ringShape !== 'circle' && (
                       <span className="text-amber-500 font-mono bg-amber-500/10 px-1 rounded border border-amber-500/20" title="Actual teeth on sculpted perimeter">
                         {actualRingTeeth}T Actual
@@ -1132,9 +1146,14 @@ export default function App() {
                     <label className="text-slate-400">Rolling Gear Teeth</label>
                     <span className="text-[8px] text-slate-500">Max safe: {safeGearTeethLimit}T</span>
                   </div>
-                  <span className={`font-mono bg-white/5 px-1.5 rounded ${params.gearTeeth > safeGearTeethLimit ? 'text-red-400' : 'text-white'}`}>
-                    {params.gearTeeth}T
-                  </span>
+                  <div className="flex gap-2 items-center">
+                    <span className="text-amber-500/80 font-mono bg-amber-500/5 px-1.5 rounded border border-amber-500/10">
+                      {(params.gearTeeth * 6 / Math.PI * (params.scale || 1.0)).toFixed(1)}mm Ø
+                    </span>
+                    <span className={`font-mono bg-white/5 px-1.5 rounded ${params.gearTeeth > safeGearTeethLimit ? 'text-red-400' : 'text-white'}`}>
+                      {params.gearTeeth}T
+                    </span>
+                  </div>
                 </div>
                 <div className="relative h-1 w-full bg-white/10 rounded-full group">
                   <input 
@@ -1539,12 +1558,22 @@ export default function App() {
 
               <div className="absolute bottom-6 left-6 z-10 flex gap-4">
                 <div className="px-3 py-1.5 bg-amber-500/10 backdrop-blur-xl rounded-lg border border-amber-500/20 text-[9px] font-mono text-amber-500/80 shadow-2xl flex flex-col">
-                  <span className="text-[7px] uppercase tracking-widest opacity-50 mb-0.5">X-Coordinate</span>
-                  {(pan.x / zoom).toFixed(2)}mm
+                  <span className="text-[7px] uppercase tracking-widest opacity-50 mb-0.5">Ring Assembly Dimension</span>
+                  {(() => {
+                    const r = getRadiusFromTeeth(params.ringTeeth) * (params.scale || 1.0);
+                    const modMax = params.ringShape === 'custom' ? Math.max(...(params.customRingPoints || [1.0])) : (1 + (params.ringIntensity || 0) * 0.15);
+                    const margin = 30 * (params.scale || 1.0);
+                    const dim = (r * modMax + margin) * 2;
+                    return `${dim.toFixed(1)}mm × ${dim.toFixed(1)}mm (${params.ringTeeth}T)`;
+                  })()}
                 </div>
                 <div className="px-3 py-1.5 bg-amber-500/10 backdrop-blur-xl rounded-lg border border-amber-500/20 text-[9px] font-mono text-amber-500/80 shadow-2xl flex flex-col">
-                  <span className="text-[7px] uppercase tracking-widest opacity-50 mb-0.5">Y-Coordinate</span>
-                  {(pan.y / zoom).toFixed(2)}mm
+                  <span className="text-[7px] uppercase tracking-widest opacity-50 mb-0.5">Rolling Gear Diameter</span>
+                  {(() => {
+                    const teeth = params.isMultiStage ? params.stageTwoTeeth : params.gearTeeth;
+                    const diameter = teeth * 6 / Math.PI * (params.scale || 1.0);
+                    return `${diameter.toFixed(1)}mm Ø (${teeth}T)`;
+                  })()}
                 </div>
               </div>
               

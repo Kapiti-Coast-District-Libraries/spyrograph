@@ -22,7 +22,12 @@ import {
   Undo2,
   Redo2,
   Box,
-  AlertTriangle
+  AlertTriangle,
+  ChevronDown,
+  ChevronUp,
+  Sliders,
+  Plus,
+  Minus
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { SpiroParams } from './types';
@@ -135,10 +140,10 @@ function RingBezierEditor({ points, tension, teeth, onChange, onTensionChange, o
   }, [points, tension, teeth, rBase, center]);
 
   return (
-    <div className="p-4 bg-white/5 border border-white/10 rounded-xl space-y-4 mt-4 select-none">
+    <div className="p-4 bg-slate-50/65 border border-slate-200/80 rounded-xl space-y-4 mt-4 select-none">
         <div className="flex justify-between items-center text-[9px] uppercase tracking-widest text-slate-500">
             <span className="flex items-center gap-2">
-              <Wrench className="w-3 h-3 text-amber-500" /> 
+              <Wrench className="w-3 h-3 text-blue-600" /> 
               Profile Sculptor
             </span>
             <button 
@@ -146,7 +151,7 @@ function RingBezierEditor({ points, tension, teeth, onChange, onTensionChange, o
                 onChange(Array(points.length).fill(1.0));
                 onFinishChange();
               }}
-              className="px-2 py-1 bg-white/10 hover:bg-white/20 rounded text-[8px] transition-colors"
+              className="px-2 py-1 bg-slate-200/80 hover:bg-slate-300 rounded text-[8px] transition-colors text-slate-705 font-bold"
             >
               Reset
             </button>
@@ -162,14 +167,14 @@ function RingBezierEditor({ points, tension, teeth, onChange, onTensionChange, o
           >
               {/* Scale Background */}
               {[0.5, 1.0, 1.5, 2.0].map(s => (
-                <circle key={s} cx={center} cy={center} r={rBase * s} fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="0.5" />
+                <circle key={s} cx={center} cy={center} r={rBase * s} fill="none" stroke="rgba(0,0,0,0.04)" strokeWidth="0.5" />
               ))}
               
               {/* Virtual Teeth Preview */}
-              <path d={teethData} fill="none" stroke="rgba(245,158,11,0.2)" strokeWidth="0.5" strokeDasharray="1 1" />
+              <path d={teethData} fill="none" stroke="rgba(59,130,246,0.2)" strokeWidth="0.5" strokeDasharray="1 1" />
               
               {/* The Profile Line */}
-              <path d={pathData} fill="rgba(245,158,11,0.05)" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              <path d={pathData} fill="rgba(59,130,246,0.04)" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               
               {/* Control Points */}
               {points.map((mod, i) => {
@@ -180,7 +185,7 @@ function RingBezierEditor({ points, tension, teeth, onChange, onTensionChange, o
                   const isDragging = draggingIdx === i;
                   return (
                       <g key={i} className="group/node">
-                        {isDragging && <line x1={center} y1={center} x2={x} y2={y} stroke="rgba(255,255,255,0.4)" strokeWidth="0.5" strokeDasharray="2 2" />}
+                        {isDragging && <line x1={center} y1={center} x2={x} y2={y} stroke="rgba(0,0,0,0.2)" strokeWidth="0.5" strokeDasharray="2 2" />}
                         
                         {/* Larger hit area for easier selection */}
                         <circle 
@@ -193,15 +198,15 @@ function RingBezierEditor({ points, tension, teeth, onChange, onTensionChange, o
                         {/* Visible node */}
                         <circle 
                             cx={x} cy={y} r={isDragging ? 8 : 5}
-                            fill={isDragging ? "#fff" : "#f59e0b"}
-                            stroke="#000" strokeWidth={isDragging ? 2 : 1}
-                            className="pointer-events-none transition-all duration-150 group-hover/node:scale-125 group-hover/node:fill-white group-hover/node:filter group-hover/node:drop-shadow-[0_0_5px_rgba(245,158,11,0.8)]"
+                            fill={isDragging ? "#fff" : "#2563eb"}
+                            stroke="#1e3a8a" strokeWidth={isDragging ? 2 : 1}
+                            className="pointer-events-none transition-all duration-150 group-hover/node:scale-125 group-hover/node:fill-white group-hover/node:filter group-hover/node:drop-shadow-[0_0_5px_rgba(59,130,246,0.8)]"
                         />
                         
                         {/* Index Indicator on hover */}
                         <text 
                           x={x + 10} y={y - 10} 
-                          className="opacity-0 group-hover/node:opacity-100 fill-slate-400 text-[6px] font-mono pointer-events-none transition-opacity"
+                          className="opacity-0 group-hover/node:opacity-100 fill-slate-500 text-[6px] font-mono pointer-events-none transition-opacity"
                         >
                           N{i}
                         </text>
@@ -211,11 +216,11 @@ function RingBezierEditor({ points, tension, teeth, onChange, onTensionChange, o
           </svg>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 pt-2 border-t border-white/5">
+        <div className="grid grid-cols-2 gap-4 pt-2 border-t border-slate-200/60">
           <div className="space-y-2">
             <div className="flex justify-between text-[8px] uppercase text-slate-500 font-mono">
               <span>Resolution</span>
-              <span className="text-amber-500">{points.length} nodes</span>
+              <span className="text-blue-600 font-bold">{points.length} nodes</span>
             </div>
             <div className="flex gap-1">
               {[4, 8, 16, 32].map(n => (
@@ -225,7 +230,7 @@ function RingBezierEditor({ points, tension, teeth, onChange, onTensionChange, o
                     onChange(Array(n).fill(1.0));
                     onFinishChange();
                   }}
-                  className={`flex-1 py-1 text-[9px] rounded border transition-all ${points.length === n ? 'bg-amber-500/20 border-amber-500/40 text-amber-500' : 'bg-white/5 border-white/5 text-slate-500'}`}
+                  className={`flex-1 py-1 text-[9px] rounded border transition-all ${points.length === n ? 'bg-blue-50 border-blue-200 text-blue-600 font-bold' : 'bg-slate-100/60 border-slate-200/40 text-slate-500'}`}
                 >
                   {n}
                 </button>
@@ -236,14 +241,14 @@ function RingBezierEditor({ points, tension, teeth, onChange, onTensionChange, o
           <div className="space-y-2">
             <div className="flex justify-between text-[8px] uppercase text-slate-500 font-mono">
               <span>Curve Tension</span>
-              <span className="text-white">{(tension * 100).toFixed(0)}</span>
+              <span className="text-slate-800 font-bold">{(tension * 100).toFixed(0)}</span>
             </div>
             <input 
               type="range" min="0" max="1" step="0.05" 
               value={tension} 
               onChange={(e) => onTensionChange(parseFloat(e.target.value))}
               onPointerUp={onFinishChange}
-              className="w-full accent-amber-500 h-1 bg-white/10 rounded-full appearance-none cursor-pointer"
+              className="w-full accent-blue-600 h-1 bg-slate-200 rounded-full appearance-none cursor-pointer"
             />
           </div>
         </div>
@@ -251,10 +256,35 @@ function RingBezierEditor({ points, tension, teeth, onChange, onTensionChange, o
   );
 }
 
+export function getMaxScale(p: SpiroParams): number {
+  const baseRingRadius = getRadiusFromTeeth(p.ringTeeth);
+  let baseOuterBoundary = baseRingRadius + 20;
+
+  if (p.hasExternalTeeth && p.externalTeeth) {
+    const baseTargetOuterRadius = getRadiusFromTeeth(p.externalTeeth);
+    baseOuterBoundary = baseTargetOuterRadius + 5;
+  } else {
+    const baseMargin = 30;
+    const modMax = p.ringShape === 'custom' ? Math.max(...(p.customRingPoints || [1.0])) : (1 + (p.ringIntensity || 0) * 0.15);
+    baseOuterBoundary = (baseRingRadius * modMax) + baseMargin + 10;
+  }
+  const baseEnvelope = baseOuterBoundary * 2;
+  return Math.max(0.1, 455.0 / baseEnvelope);
+}
+
+export function getMaxHolePercent(p: SpiroParams): number {
+  const activeGearTeeth = p.isMultiStage ? p.stageTwoTeeth : p.gearTeeth;
+  const activeGearRadius = getRadiusFromTeeth(activeGearTeeth);
+  const rootRadius = activeGearRadius - 1.65; // Inside of teeth base (3.3 / 2)
+  // Deduct another 1.5mm to keep the 1.5mm-radius pen hole completely within the root boundary
+  const maxAllowed = Math.max(1.0, rootRadius - 1.5);
+  return Math.floor((maxAllowed / activeGearRadius) * 100);
+}
+
 export default function App() {
   const defaultParams: SpiroParams = {
-    ringTeeth: 180,
-    gearTeeth: 80,
+    ringTeeth: 40,
+    gearTeeth: 18,
     holeOffsets: [60],
     rotation: 0,
     resolution: 1,
@@ -267,8 +297,8 @@ export default function App() {
     customRingPoints: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
     maxRotations: 30,
     isMultiStage: false,
-    stageTwoTeeth: 32,
-    stageOneInternalTeeth: 52,
+    stageTwoTeeth: 12,
+    stageOneInternalTeeth: 24,
     railOffset: 0,
     offsetX: 0,
     offsetY: 0,
@@ -278,13 +308,14 @@ export default function App() {
   const [layers, setLayers] = useState<Layer[]>([
     {
       id: 'layer-1',
-      name: 'Primary Set',
+      name: 'Ring 1',
       params: { ...defaultParams },
       color: LAYER_COLORS[0],
       visible: true
     }
   ]);
   const [activeLayerIndex, setActiveLayerIndex] = useState(0);
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   // Undo/Redo state
   const [history, setHistory] = useState<{ layers: Layer[], activeIndex: number }[]>([]);
@@ -361,6 +392,7 @@ export default function App() {
   }, [undo, redo]);
 
   const params = layers[activeLayerIndex]?.params || defaultParams;
+  const maxHPercent = getMaxHolePercent(params);
 
   const minCurvature = useMemo(() => {
     return getMinCurvatureRadius(
@@ -396,7 +428,7 @@ export default function App() {
 
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [refreshKey, setRefreshKey] = useState(0);
-  const [zoom, setZoom] = useState(1);
+  const [zoom, setZoom] = useState(5.0);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
@@ -499,20 +531,72 @@ export default function App() {
   }, [isAnimating, animationSpeed, params.maxRotations]);
 
   const updateParams = (newParamsPartial: Partial<SpiroParams>) => {
-    const newLayers = layers.map((layer, idx) => 
-      idx === activeLayerIndex 
-        ? { ...layer, params: { ...layer.params, ...newParamsPartial } }
-        : layer
-    );
+    const newLayers = layers.map((layer, idx) => {
+      if (idx !== activeLayerIndex) return layer;
+      
+      const mergedParams = { ...layer.params, ...newParamsPartial };
+      const maxAllowedScale = getMaxScale(mergedParams);
+      if (mergedParams.scale > maxAllowedScale) {
+        mergedParams.scale = maxAllowedScale;
+      }
+      
+      // Keep hole offsets fully inside the root boundary of current active gear teeth
+      const maxHolePct = getMaxHolePercent(mergedParams);
+      if (mergedParams.holeOffsets) {
+        mergedParams.holeOffsets = mergedParams.holeOffsets.map(offset => Math.min(offset, maxHolePct));
+      }
+      
+      return { ...layer, params: mergedParams };
+    });
     setLayers(newLayers);
   };
 
   const addLayer = (overrides?: Partial<SpiroParams>, name?: string) => {
     const newIdx = layers.length;
+    const spacing = 40; // 40mm spacing between ring outer boundaries
+
+    // Find the rightmost boundary of any existing ring
+    let maxXEdge = 0;
+    if (layers.length > 0) {
+      const edges = layers.map(l => {
+        const p = l.params;
+        const ringRadius = getRadiusFromTeeth(p.ringTeeth) * (p.scale || 1.0);
+        const modMax = p.ringShape === 'custom' 
+          ? (p.customRingPoints ? Math.max(...p.customRingPoints) : 1.0) 
+          : (1 + (p.ringIntensity || 1.0) * 0.15);
+        const margin = 30 * (p.scale || 1.0);
+        const outerRadius = (ringRadius * modMax) + margin;
+        return (p.offsetX || 0) + outerRadius;
+      });
+      maxXEdge = Math.max(...edges);
+    }
+
+    // Prepare default and override params
+    const baseParams = { ...defaultParams, ...overrides };
+
+    // Calculate outer radius for the new ring to know how much to shift its center
+    const newRingRadius = getRadiusFromTeeth(baseParams.ringTeeth) * (baseParams.scale || 1.0);
+    const newModMax = baseParams.ringShape === 'custom' 
+      ? (baseParams.customRingPoints ? Math.max(...baseParams.customRingPoints) : 1.0) 
+      : (1 + (baseParams.ringIntensity || 1.0) * 0.15);
+    const newMargin = 30 * (baseParams.scale || 1.0);
+    const newOuterRadius = (newRingRadius * newModMax) + newMargin;
+
+    // Shift new ring center to the right of the rightmost edge plus its own outer radius plus padding
+    let computedOffsetX = 0;
+    if (layers.length > 0) {
+      computedOffsetX = maxXEdge + newOuterRadius + spacing;
+    }
+
+    const finalParams = {
+      ...baseParams,
+      offsetX: overrides?.offsetX !== undefined ? overrides.offsetX : computedOffsetX
+    };
+
     const newLayer: Layer = {
       id: `layer-${Date.now()}-${newIdx}`,
-      name: name || `Set ${newIdx + 1}`,
-      params: { ...defaultParams, ...overrides },
+      name: name || `Ring ${newIdx + 1}`,
+      params: finalParams,
       color: LAYER_COLORS[newIdx % LAYER_COLORS.length],
       visible: true
     };
@@ -520,6 +604,43 @@ export default function App() {
     pushToHistory(newLayers, newIdx);
     setLayers(newLayers);
     setActiveLayerIndex(newIdx);
+    setPan({ x: -finalParams.offsetX, y: -finalParams.offsetY || 0 });
+  };
+
+  const addRollingGear = () => {
+    const activeParams = layers[activeLayerIndex]?.params || defaultParams;
+    const activeName = layers[activeLayerIndex]?.name || "Ring 1";
+    
+    // Choose a default distinct gear size
+    let newGearTeeth = activeParams.gearTeeth + 4;
+    if (newGearTeeth >= activeParams.ringTeeth) {
+      newGearTeeth = Math.max(12, activeParams.ringTeeth - 6);
+    }
+
+    const gearParams: SpiroParams = {
+      ...activeParams,
+      gearTeeth: newGearTeeth,
+      holeOffsets: [Math.min(50, getMaxHolePercent({ ...activeParams, gearTeeth: newGearTeeth }))],
+      hiddenHoles: [false]
+    };
+
+    const newIdx = layers.length;
+    const cleanName = activeName.includes(" - Gear") ? activeName.split(" - Gear")[0] : activeName;
+    const gearName = `${cleanName} - Gear ${gearParams.gearTeeth}T`;
+
+    const newLayer: Layer = {
+      id: `layer-${Date.now()}-${newIdx}`,
+      name: gearName,
+      params: gearParams,
+      color: LAYER_COLORS[newIdx % LAYER_COLORS.length],
+      visible: true
+    };
+
+    const newLayers = [...layers, newLayer];
+    pushToHistory(newLayers, newIdx);
+    setLayers(newLayers);
+    setActiveLayerIndex(newIdx);
+    setPan({ x: -(gearParams.offsetX || 0), y: -(gearParams.offsetY || 0) });
   };
 
   const deleteLayer = (index: number) => {
@@ -548,14 +669,18 @@ export default function App() {
 
   const handleRefresh = () => {
     setRefreshKey(prev => prev + 1);
-    setZoom(1);
+    setZoom(5.0);
     setPan({ x: 0, y: 0 });
     setAnimationTheta(0);
   };
 
   const handleWheel = (e: React.WheelEvent) => {
-    const delta = e.deltaY * -0.001;
-    setZoom(prev => Math.min(Math.max(0.5, prev + delta), 5));
+    const isZoomIn = e.deltaY < 0;
+    const factor = 1.1;
+    setZoom(prev => {
+      const next = isZoomIn ? prev * factor : prev / factor;
+      return Math.min(Math.max(5.0, next), 40.0);
+    });
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -699,55 +824,88 @@ export default function App() {
 
   const performSTLExport = () => {
     const extrusionHeight = 2; // 2mm extrusion
-    const fileName = `spiroforge-3d-layer-${activeLayerIndex + 1}`;
-    const p = layers[activeLayerIndex].params;
-
-    // 1. Export Ring Gear (Annulus)
-    const ringRadius = getRadiusFromTeeth(p.ringTeeth);
-    const innerPoints = getGearPoints(p.ringTeeth, true, p.ringShape, p.ringIntensity, p.customRingPoints, p.ringTension, p.offsetX, p.offsetY, p.scale);
+    const seenRings = new Set<string>();
     
-    let outerPoints;
-    const margin = 20 * (p.scale || 1.0);
-    outerPoints = getShapePoints(ringRadius, p.ringShape, p.ringIntensity, p.customRingPoints, p.ringTension, p.offsetX, p.offsetY, p.scale, margin);
-    
-    generateRingSTL(innerPoints, outerPoints, extrusionHeight, `${fileName}-ring`);
+    layers.forEach((layer, index) => {
+      const p = layer.params;
+      const ringKey = JSON.stringify({
+        ringTeeth: p.ringTeeth,
+        ringShape: p.ringShape,
+        ringIntensity: p.ringIntensity,
+        customRingPoints: p.customRingPoints,
+        ringTension: p.ringTension,
+        scale: p.scale || 1.0,
+        hasExternalTeeth: p.hasExternalTeeth,
+        externalTeeth: p.externalTeeth
+      });
 
-    // 2. Export Target Gear
-    const gearPoints = getGearPoints(p.gearTeeth, false, p.gearShape, p.shapeIntensity, undefined, undefined, 0, 0, p.scale);
-    const scaledGearRadius = getRadiusFromTeeth(p.gearTeeth) * (p.scale || 1.0);
-    
-    const holes = p.isMultiStage ? [] : p.holeOffsets.map(offset => ({
-      x: scaledGearRadius * (offset / 100),
-      y: 0,
-      r: 1.5,
-      chamfer: 1.0
-    }));
+      const cleanRingName = layer.name.includes(" - Gear") ? layer.name.split(" - Gear")[0] : layer.name;
+      const ringFileName = `spiroforge-${cleanRingName.replace(/\s+/g, '-').toLowerCase()}-ring`;
+      const gearFileName = `spiroforge-gear-${layer.name.replace(/\s+/g, '-').toLowerCase()}`;
 
-    generateSTL([{ points: gearPoints, height: extrusionHeight, holes }], `${fileName}-gear`);
+      // 1. Export Ring Gear (Annulus)
+      if (!seenRings.has(ringKey)) {
+        seenRings.add(ringKey);
+        const ringRadius = getRadiusFromTeeth(p.ringTeeth);
+        const innerPoints = getGearPoints(p.ringTeeth, true, p.ringShape, p.ringIntensity, p.customRingPoints, p.ringTension, p.offsetX, p.offsetY, p.scale);
+        
+        let outerPoints;
+        const margin = 20 * (p.scale || 1.0);
+        outerPoints = getShapePoints(ringRadius, p.ringShape, p.ringIntensity, p.customRingPoints, p.ringTension, p.offsetX, p.offsetY, p.scale, margin);
+        
+        generateRingSTL(innerPoints, outerPoints, extrusionHeight, ringFileName);
+      }
 
-    if (p.isMultiStage) {
-      const scaledGear2Radius = getRadiusFromTeeth(p.stageTwoTeeth) * (p.scale || 1.0);
-      const stage2Points = getGearPoints(p.stageTwoTeeth, false, 'circle', 1.0, undefined, undefined, 0, 0, p.scale);
-      const stage2Holes = p.holeOffsets.map(offset => ({
-        x: scaledGear2Radius * (offset / 100),
+      // 2. Export Target Gear
+      const gearPoints = getGearPoints(p.gearTeeth, false, p.gearShape, p.shapeIntensity, undefined, undefined, 0, 0, p.scale);
+      const scaledGearRadius = getRadiusFromTeeth(p.gearTeeth) * (p.scale || 1.0);
+      
+      const holes = p.isMultiStage ? [] : p.holeOffsets.map(offset => ({
+        x: scaledGearRadius * (offset / 100),
         y: 0,
         r: 1.5,
         chamfer: 1.0
       }));
-      generateSTL([{ points: stage2Points, height: extrusionHeight, holes: stage2Holes }], `${fileName}-stage2`);
-    }
+
+      generateSTL([{ points: gearPoints, height: extrusionHeight, holes }], `${gearFileName}-gear`);
+
+      if (p.isMultiStage) {
+        const scaledGear2Radius = getRadiusFromTeeth(p.stageTwoTeeth) * (p.scale || 1.0);
+        const stage2Points = getGearPoints(p.stageTwoTeeth, false, 'circle', 1.0, undefined, undefined, 0, 0, p.scale);
+        const stage2Holes = p.holeOffsets.map(offset => ({
+          x: scaledGear2Radius * (offset / 100),
+          y: 0,
+          r: 1.5,
+          chamfer: 1.0
+        }));
+        generateSTL([{ points: stage2Points, height: extrusionHeight, holes: stage2Holes }], `${gearFileName}-stage2`);
+      }
+    });
+
     setShowBedWarning(false);
   };
 
   const handleExportSTL = () => {
-    // Check size but don't force resize anymore
-    const ringRadius = getRadiusFromTeeth(params.ringTeeth) * (params.scale || 1.0);
-    const modMax = params.ringShape === 'custom' ? Math.max(...(params.customRingPoints || [1.0])) : (1 + params.ringIntensity * 0.15);
-    const outerBoundary = (ringRadius * modMax) + 20;
-    const currentFullSize = outerBoundary * 2;
+    // Check if any layer exceeds the bed size
+    let anyExceeds = false;
+    let maxFullSize = 0;
     
-    if (currentFullSize > bedSize) {
-      setCurrentSize(currentFullSize);
+    layers.forEach(layer => {
+      const p = layer.params;
+      const ringRadius = getRadiusFromTeeth(p.ringTeeth) * (p.scale || 1.0);
+      const modMax = p.ringShape === 'custom' ? Math.max(...(p.customRingPoints || [1.0])) : (1 + p.ringIntensity * 0.15);
+      const outerBoundary = (ringRadius * modMax) + 20;
+      const currentFullSize = outerBoundary * 2;
+      if (currentFullSize > maxFullSize) {
+        maxFullSize = currentFullSize;
+      }
+      if (currentFullSize > bedSize) {
+        anyExceeds = true;
+      }
+    });
+    
+    if (anyExceeds) {
+      setCurrentSize(maxFullSize);
       setShowBedWarning(true);
     } else {
       performSTLExport();
@@ -768,8 +926,10 @@ export default function App() {
 
   const generateDrawingSvg = () => {
     const allLayersPoints = layersFullPaths
-      .filter((_, i) => layers[i].visible)
-      .map(l => l.paths.flat());
+      .map((l, lIdx) => {
+        if (!layers[lIdx].visible) return [];
+        return l.paths.filter((_, pIdx) => !layers[lIdx].params.hiddenHoles?.[pIdx]).flat();
+      });
     
     const combinedPoints = allLayersPoints.flat();
     if (combinedPoints.length === 0) return '';
@@ -787,131 +947,455 @@ export default function App() {
     const svgPaths = layersFullPaths.map((layerFull, lIdx) => {
       if (!layers[lIdx].visible) return '';
       const layerParams = layers[lIdx].params;
-      return layerFull.paths.map(points => {
+      return layerFull.paths.map((points, pIdx) => {
+        if (layerParams.hiddenHoles?.[pIdx]) return '';
         const pathData = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x - minX + padding} ${p.y - minY + padding}`).join(' ');
         return `<path d="${pathData}" fill="none" stroke="${layers[lIdx].color}" stroke-width="0.8" />`;
-      }).join('\n');
+      }).filter(Boolean).join('\n');
     }).join('\n');
 
     return `<svg width="${width}mm" height="${height}mm" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">${svgPaths}</svg>`;
   };
 
   const generatePartsSvg = () => {
-    const ringPath = generateGearSvgPath(params.ringTeeth, true, params.ringShape, params.ringIntensity, params.customRingPoints, params.ringTension, params.offsetX, params.offsetY, params.scale);
-    const gearPath = generateGearSvgPath(params.gearTeeth, false, params.gearShape, params.shapeIntensity);
-    const gear2Path = params.isMultiStage ? generateGearSvgPath(params.stageTwoTeeth, false) : '';
-    const gear1InternalPath = params.isMultiStage ? generateGearSvgPath(params.stageOneInternalTeeth, true) : '';
-    
-    let extRingPath = '';
-    const currentRingRadius = getRadiusFromTeeth(params.ringTeeth) * (params.scale || 1.0);
-    let outerBoundary = currentRingRadius + 20;
-
-    if (params.hasExternalTeeth && params.externalTeeth) {
-      const targetOuterRadius = getRadiusFromTeeth(params.externalTeeth) * (params.scale || 1.0);
-      const margin = targetOuterRadius - currentRingRadius;
-      extRingPath = generateGearSvgPath(params.ringTeeth, false, params.ringShape, params.ringIntensity, params.customRingPoints, params.ringTension, params.offsetX, params.offsetY, params.scale, margin);
-      outerBoundary = targetOuterRadius + 5;
-    } else {
-      // Use a smooth 30mm offset for the outer cut when no external teeth are requested
-      const margin = 30 * (params.scale || 1.0);
-      extRingPath = generateShapeSvgPath(getRadiusFromTeeth(params.ringTeeth), params.ringShape, params.ringIntensity, params.customRingPoints, params.ringTension, params.offsetX, params.offsetY, params.scale, margin);
-      
-      // Calculate a safe viewBox boundary based on the max possible extent
-      const modMax = params.ringShape === 'custom' ? Math.max(...(params.customRingPoints || [1.0])) : (1 + params.ringIntensity * 0.15);
-      outerBoundary = (currentRingRadius * modMax) + margin + 10;
+    interface PackedItem {
+      id: string;
+      type: 'ring' | 'gear1' | 'gear2';
+      layerIndex: number;
+      layerName: string;
+      scale: number;
+      outerRadius: number;
+      innerClearRadius?: number;
+      localX: number;
+      localY: number;
+      globalX?: number;
+      globalY?: number;
+      children: PackedItem[];
+      ringPath?: string;
+      extRingPath?: string;
+      gearPath?: string;
+      gear1InternalPath?: string;
+      gear2Path?: string;
+      holeOffsets?: number[];
+      hiddenHoles?: boolean[];
+      railOffset?: number;
+      isMultiStage?: boolean;
     }
 
-    const spacing = 50;
-    const gear2Radius = params.isMultiStage ? getRadiusFromTeeth(params.stageTwoTeeth) : 0;
-    const totalWidth = outerBoundary * 2 + spacing + gearRadius * 3 + (params.isMultiStage ? spacing + gear2Radius * 2 : 0);
-    const totalHeight = Math.max(outerBoundary * 2, gearRadius * 3) + 40;
-    
-    const viewBoxX = -outerBoundary - 20;
-    const viewBoxY = -Math.max(outerBoundary, gearRadius * 1.5) - 20;
-    
-    const holePaths = params.holeOffsets.map(offset => {
-      const targetRadius = params.isMultiStage ? gear2Radius : gearRadius;
-      const holeX = targetRadius * (offset / 100);
-      const holeR = 1.6;
-      return `<path d="M ${holeX - holeR},0 a ${holeR},${holeR} 0 1,0 ${holeR * 2},0 a ${holeR},${holeR} 0 1,0 -${holeR * 2},0" fill="none" stroke="red" stroke-width="0.25" stroke-linecap="round" stroke-linejoin="round" />`;
-    }).join('\n');
-    
-    return `
-      <svg width="${totalWidth + 20}mm" height="${totalHeight + 20}mm" viewBox="${viewBoxX} ${viewBoxY} ${totalWidth + 20} ${totalHeight + 20}" xmlns="http://www.w3.org/2000/svg">
-        <desc>Kapiti Libraries SpiroForge - Laser Cut Template</desc>
-        <!-- Ring System -->
-        <path d="${ringPath} ${extRingPath}" fill="none" stroke="red" stroke-width="0.12" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round" />
-        
-        <!-- Gear 1 Section -->
-        <g transform="translate(${outerBoundary + gearRadius + spacing}, 0)">
-          <path d="${gearPath}" fill="none" stroke="red" stroke-width="0.12" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round" />
-          <g transform="translate(${params.railOffset}, 0)">
-            <path d="${gear1InternalPath}" fill="none" stroke="red" stroke-width="0.12" stroke-linecap="round" stroke-linejoin="round" />
-          </g>
-          ${!params.isMultiStage ? holePaths : ''}
-          <!-- Center Point Mark -->
-          <line x1="-1" y1="0" x2="1" y2="0" stroke="blue" stroke-width="0.05" />
-          <line x1="0" y1="-1" x2="0" y2="1" stroke="blue" stroke-width="0.05" />
-        </g>
+    const rawRings: PackedItem[] = [];
+    const rawGears: PackedItem[] = [];
+    const seenRings = new Set<string>();
 
-        ${params.isMultiStage ? `
-        <!-- Gear 2 Section -->
-        <g transform="translate(${outerBoundary + gearRadius * 2 + spacing * 2 + gear2Radius}, 0)">
-          <path d="${gear2Path}" fill="none" stroke="red" stroke-width="0.12" stroke-linecap="round" stroke-linejoin="round" />
+    layers.forEach((layer, lIdx) => {
+      const p = layer.params;
+      
+      const ringKey = JSON.stringify({
+        ringTeeth: p.ringTeeth,
+        ringShape: p.ringShape,
+        ringIntensity: p.ringIntensity,
+        customRingPoints: p.customRingPoints,
+        ringTension: p.ringTension,
+        scale: p.scale || 1.0,
+        hasExternalTeeth: p.hasExternalTeeth,
+        externalTeeth: p.externalTeeth
+      });
+
+      const currentRingRadius = getRadiusFromTeeth(p.ringTeeth) * (p.scale || 1.0);
+      
+      if (!seenRings.has(ringKey)) {
+        seenRings.add(ringKey);
+        
+        // Calculate outerBoundary & paths relative to origin (0,0)
+        let outerBoundary = currentRingRadius + 20;
+        let extRingPath = '';
+        if (p.hasExternalTeeth && p.externalTeeth) {
+          const targetOuterRadius = getRadiusFromTeeth(p.externalTeeth) * (p.scale || 1.0);
+          const margin = targetOuterRadius - currentRingRadius;
+          extRingPath = generateGearSvgPath(p.ringTeeth, false, p.ringShape, p.ringIntensity, p.customRingPoints, p.ringTension, 0, 0, p.scale, margin);
+          outerBoundary = targetOuterRadius + 5;
+        } else {
+          const margin = 30 * (p.scale || 1.0);
+          extRingPath = generateShapeSvgPath(getRadiusFromTeeth(p.ringTeeth), p.ringShape, p.ringIntensity, p.customRingPoints, p.ringTension, 0, 0, p.scale, margin);
+          const modMax = p.ringShape === 'custom' ? Math.max(...(p.customRingPoints || [1.0])) : (1 + p.ringIntensity * 0.15);
+          outerBoundary = (currentRingRadius * modMax) + margin + 10;
+        }
+
+        const ringPath = generateGearSvgPath(p.ringTeeth, true, p.ringShape, p.ringIntensity, p.customRingPoints, p.ringTension, 0, 0, p.scale);
+
+        // Sample ring internal teeth geometry to find the actual minimum clearance inner radius
+        const ringPoints = getGearPoints(p.ringTeeth, true, p.ringShape, p.ringIntensity, p.customRingPoints, p.ringTension, 0, 0, p.scale);
+        const minR = ringPoints.reduce((min, pt) => {
+          const dist = Math.sqrt(pt.x * pt.x + pt.y * pt.y);
+          return Math.min(min, dist);
+        }, Infinity);
+        const innerClearRadius = Math.max(10, minR - 1.5); // 1.5mm safe spacing away from internal teeth
+
+        rawRings.push({
+          id: `ring-${layer.id}`,
+          type: 'ring',
+          layerIndex: lIdx,
+          layerName: layer.name,
+          scale: p.scale || 1.0,
+          outerRadius: outerBoundary,
+          innerClearRadius,
+          localX: 0,
+          localY: 0,
+          children: [] as PackedItem[],
+          ringPath,
+          extRingPath
+        });
+      }
+
+      // Gear 1
+      const gearPoints = getGearPoints(p.gearTeeth, false, p.gearShape, p.shapeIntensity, undefined, undefined, 0, 0, p.scale);
+      const maxGearR = gearPoints.reduce((max, pt) => {
+        const dist = Math.sqrt(pt.x * pt.x + pt.y * pt.y);
+        return Math.max(max, dist);
+      }, 0);
+      const gearPath = generateGearSvgPath(p.gearTeeth, false, p.gearShape, p.shapeIntensity, undefined, undefined, 0, 0, p.scale);
+      const gear1InternalPath = p.isMultiStage ? generateGearSvgPath(p.stageOneInternalTeeth, true, 'circle', 1.0, undefined, undefined, 0, 0, p.scale) : '';
+
+      rawGears.push({
+        id: `g1-${layer.id}`,
+        type: 'gear1',
+        layerIndex: lIdx,
+        layerName: layer.name,
+        scale: p.scale || 1.0,
+        outerRadius: maxGearR + 1.2, // 1.2mm safety buffer
+        localX: 0,
+        localY: 0,
+        children: [] as PackedItem[],
+        gearPath,
+        gear1InternalPath,
+        holeOffsets: p.holeOffsets,
+        hiddenHoles: p.hiddenHoles,
+        railOffset: p.railOffset,
+        isMultiStage: p.isMultiStage
+      });
+
+      // Gear 2 (if multi-stage)
+      if (p.isMultiStage) {
+        const stage2Points = getGearPoints(p.stageTwoTeeth, false, 'circle', 1.0, undefined, undefined, 0, 0, p.scale);
+        const maxGear2R = stage2Points.reduce((max, pt) => {
+          const dist = Math.sqrt(pt.x * pt.x + pt.y * pt.y);
+          return Math.max(max, dist);
+        }, 0);
+        const gear2Path = generateGearSvgPath(p.stageTwoTeeth, false, 'circle', 1.0, undefined, undefined, 0, 0, p.scale);
+        
+        rawGears.push({
+          id: `g2-${layer.id}`,
+          type: 'gear2',
+          layerIndex: lIdx,
+          layerName: layer.name,
+          scale: p.scale || 1.0,
+          outerRadius: maxGear2R + 1.2, // 1.2mm safety buffer
+          localX: 0,
+          localY: 0,
+          children: [] as PackedItem[],
+          gear2Path,
+          holeOffsets: p.holeOffsets,
+          hiddenHoles: p.hiddenHoles
+        });
+      }
+    });
+
+    // Nest smaller rings coaxially inside larger rings
+    const sortedRings = [...rawRings].sort((a, b) => b.outerRadius - a.outerRadius);
+    const rootRings: PackedItem[] = [];
+
+    function tryNestRing(ring: PackedItem, parent: PackedItem): boolean {
+      if (!parent.innerClearRadius) return false;
+      
+      const childRing = parent.children.find(c => c.type === 'ring');
+      if (childRing) {
+        return tryNestRing(ring, childRing);
+      }
+
+      if (ring.outerRadius + 3.0 <= parent.innerClearRadius) {
+        ring.localX = 0;
+        ring.localY = 0;
+        parent.children.push(ring);
+        return true;
+      }
+      return false;
+    }
+
+    for (const ring of sortedRings) {
+      let nested = false;
+      for (const rootRing of rootRings) {
+        if (tryNestRing(ring, rootRing)) {
+          nested = true;
+          break;
+        }
+      }
+      if (!nested) {
+        rootRings.push(ring);
+      }
+    }
+
+    // Collect innermost open ring holes (bins) where we will pack the gears
+    const innermostRings: PackedItem[] = [];
+    function findInnermost(node: PackedItem) {
+      const childRing = node.children.find(c => c.type === 'ring');
+      if (childRing) {
+        findInnermost(childRing);
+      } else {
+        innermostRings.push(node);
+      }
+    }
+    rootRings.forEach(findInnermost);
+
+    // Pack gears inside innermost ring holes using highly optimized concentric polar placement
+    const sortedGears = [...rawGears].sort((a, b) => b.outerRadius - a.outerRadius);
+    const unplacedGears: PackedItem[] = [];
+
+    function findCirclePlacement(r: number, Rbin: number, placed: PackedItem[]): { x: number; y: number } | null {
+      const margin = 2.0; // mm minimum gap between items
+      
+      if (placed.length === 0) {
+        if (r <= Rbin) return { x: 0, y: 0 };
+        return null;
+      }
+
+      const rStep = 2.0; 
+      for (let currentR = 0; currentR <= Rbin - r; currentR += rStep) {
+        const circumference = 2 * Math.PI * currentR;
+        const angleCount = currentR === 0 ? 1 : Math.max(8, Math.ceil(circumference / 6.0));
+        
+        for (let j = 0; j < angleCount; j++) {
+          const angle = (j / angleCount) * 2 * Math.PI;
+          const x = currentR * Math.cos(angle);
+          const y = currentR * Math.sin(angle);
+
+          if (Math.sqrt(x * x + y * y) + r > Rbin) continue;
+
+          let overlap = false;
+          for (const other of placed) {
+            const dist = Math.sqrt((x - other.localX) ** 2 + (y - other.localY) ** 2);
+            if (dist < r + other.outerRadius + margin) {
+              overlap = true;
+              break;
+            }
+          }
+
+          if (!overlap) {
+            return { x, y };
+          }
+        }
+      }
+      return null;
+    }
+
+    for (const gear of sortedGears) {
+      let placed = false;
+      for (const ring of innermostRings) {
+        const pos = findCirclePlacement(gear.outerRadius, ring.innerClearRadius || 0, ring.children);
+        if (pos) {
+          gear.localX = pos.x;
+          gear.localY = pos.y;
+          ring.children.push(gear);
+          placed = true;
+          break;
+        }
+      }
+      if (!placed) {
+        unplacedGears.push(gear);
+      }
+    }
+
+    const topLevelItems: PackedItem[] = [...rootRings, ...unplacedGears];
+
+    // Compute grid/row coordinates for the top-level items on the laser bed
+    let currentX = 0;
+    let currentY = 0;
+    let maxRowHeightInY = 0;
+    const itemSpacing = 15; // 15mm gap between parts
+    const maxRowWidth = Math.max(400, bedSize);
+
+    function computeGlobalCoordinates(item: PackedItem, gX: number, gY: number) {
+      item.globalX = gX;
+      item.globalY = gY;
+      item.children.forEach(child => {
+        computeGlobalCoordinates(child, gX + child.localX, gY + child.localY);
+      });
+    }
+
+    for (const item of topLevelItems) {
+      const r = item.outerRadius;
+      
+      if (currentX + r > maxRowWidth - 20) {
+        currentX = 0;
+        currentY += maxRowHeightInY + itemSpacing;
+        maxRowHeightInY = 0;
+      }
+
+      if (currentX === 0) {
+        currentX += r + 10;
+      } else {
+        currentX += r + itemSpacing;
+      }
+
+      computeGlobalCoordinates(item, currentX, currentY + r + 10);
+
+      currentX += r;
+      maxRowHeightInY = Math.max(maxRowHeightInY, r * 2);
+    }
+
+    // Measure actual workspace size of the packed layout to fit the SVG viewport perfectly
+    let minX = Infinity;
+    let maxX = -Infinity;
+    let minY = Infinity;
+    let maxY = -Infinity;
+
+    function findExtents(item: PackedItem) {
+      const r = item.outerRadius;
+      if (item.globalX !== undefined && item.globalY !== undefined) {
+        minX = Math.min(minX, item.globalX - r);
+        maxX = Math.max(maxX, item.globalX + r);
+        minY = Math.min(minY, item.globalY - r);
+        maxY = Math.max(maxY, item.globalY + r);
+      }
+      item.children.forEach(findExtents);
+    }
+    topLevelItems.forEach(findExtents);
+
+    if (minX === Infinity) {
+      minX = 0;
+      maxX = 200;
+      minY = 0;
+      maxY = 200;
+    }
+
+    const padding = 15;
+    const totalWidth = (maxX - minX) + padding * 2;
+    const totalHeight = (maxY - minY) + padding * 2;
+    const viewBoxX = minX - padding;
+    const viewBoxY = minY - padding;
+
+    // Flatten nested structure to easily serialize SVG groups
+    const flatItems: PackedItem[] = [];
+    function flatten(item: PackedItem) {
+      flatItems.push(item);
+      item.children.forEach(flatten);
+    }
+    topLevelItems.forEach(flatten);
+
+    const svgGroups = flatItems.map((item) => {
+      const x = item.globalX || 0;
+      const y = item.globalY || 0;
+
+      if (item.type === 'ring') {
+        const cleanName = item.layerName.includes(" - Gear") ? item.layerName.split(" - Gear")[0] : item.layerName;
+        return `
+        <!-- Ring Part: ${cleanName} -->
+        <g transform="translate(${x}, ${y})">
+          <path d="${item.ringPath} ${item.extRingPath}" fill="none" stroke="red" stroke-width="0.12" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round" />
+        </g>
+        `;
+      } else if (item.type === 'gear1') {
+        const refTeeth = layers[item.layerIndex].params.gearTeeth;
+        const targetRadius = getRadiusFromTeeth(refTeeth) * item.scale;
+        
+        const holePaths = !item.isMultiStage && item.holeOffsets ? item.holeOffsets.map((offset, hIdx) => {
+          if (item.hiddenHoles?.[hIdx]) return '';
+          const holeX = targetRadius * (offset / 100);
+          const holeR = 1.6;
+          return `<path d="M ${holeX - holeR},0 a ${holeR},${holeR} 0 1,0 ${holeR * 2},0 a ${holeR},${holeR} 0 1,0 -${holeR * 2},0" fill="none" stroke="red" stroke-width="0.25" stroke-linecap="round" stroke-linejoin="round" />`;
+        }).join('\n') : '';
+
+        return `
+        <!-- Gear 1 Part: ${item.layerName} -->
+        <g transform="translate(${x}, ${y})">
+          <path d="${item.gearPath}" fill="none" stroke="red" stroke-width="0.12" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round" />
+          ${item.isMultiStage ? `
+          <g transform="translate(${item.railOffset || 0}, 0)">
+            <path d="${item.gear1InternalPath}" fill="none" stroke="red" stroke-width="0.12" stroke-linecap="round" stroke-linejoin="round" />
+          </g>
+          ` : ''}
           ${holePaths}
           <!-- Center Point Mark -->
-          <line x1="-1" y1="0" x2="1" y2="0" stroke="blue" stroke-width="0.05" />
-          <line x1="0" y1="-1" x2="0" y2="1" stroke="blue" stroke-width="0.05" />
-        </g>` : ''}
+          <line x1="-1.2" y1="0" x2="1.2" y2="0" stroke="blue" stroke-width="0.06" />
+          <line x1="0" y1="-1.2" x2="0" y2="1.2" stroke="blue" stroke-width="0.06" />
+        </g>
+        `;
+      } else {
+        // Gear 2 (stage 2)
+        const refTeeth = layers[item.layerIndex].params.stageTwoTeeth;
+        const targetRadius = getRadiusFromTeeth(refTeeth) * item.scale;
+
+        const holePaths = item.holeOffsets ? item.holeOffsets.map((offset, hIdx) => {
+          if (item.hiddenHoles?.[hIdx]) return '';
+          const holeX = targetRadius * (offset / 100);
+          const holeR = 1.6;
+          return `<path d="M ${holeX - holeR},0 a ${holeR},${holeR} 0 1,0 ${holeR * 2},0 a ${holeR},${holeR} 0 1,0 -${holeR * 2},0" fill="none" stroke="red" stroke-width="0.25" stroke-linecap="round" stroke-linejoin="round" />`;
+        }).join('\n') : '';
+
+        return `
+        <!-- Gear 2 Part: ${item.layerName} -->
+        <g transform="translate(${x}, ${y})">
+          <path d="${item.gear2Path}" fill="none" stroke="red" stroke-width="0.12" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round" />
+          ${holePaths}
+          <!-- Center Point Mark -->
+          <line x1="-1.2" y1="0" x2="1.2" y2="0" stroke="blue" stroke-width="0.06" />
+          <line x1="0" y1="-1.2" x2="0" y2="1.2" stroke="blue" stroke-width="0.06" />
+        </g>
+        `;
+      }
+    }).join('\n');
+
+    return `
+      <svg width="${totalWidth}mm" height="${totalHeight}mm" viewBox="${viewBoxX} ${viewBoxY} ${totalWidth} ${totalHeight}" xmlns="http://www.w3.org/2000/svg">
+        <desc>Kapiti Libraries SpiroForge - Optimized High-Density Nested Laser Cut Template</desc>
+        ${svgGroups}
       </svg>
     `.trim();
   };
 
   return (
-    <div className="h-screen bg-[#0a0a0b] text-slate-300 font-sans flex flex-col overflow-hidden selection:bg-amber-500 selection:text-black">
+    <div className="h-screen bg-slate-50 text-slate-700 font-sans flex flex-col overflow-hidden selection:bg-blue-600 selection:text-white">
       
       {/* Header */}
-      <header className="h-16 border-b border-white/10 flex items-center justify-between px-8 shrink-0 bg-[#0a0a0b] z-30">
+      <header className="h-16 border-b border-slate-200 flex items-center justify-between px-8 shrink-0 bg-white z-30 shadow-sm">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded bg-amber-500/20 border border-amber-500/50 flex items-center justify-center">
-            <Activity className="w-4 h-4 text-amber-500 animate-pulse" />
+          <div className="w-8 h-8 rounded bg-blue-50 border border-blue-200 flex items-center justify-center animate-pulse">
+            <Activity className="w-4 h-4 text-blue-600" />
           </div>
-          <h1 className="text-lg font-light tracking-widest text-white uppercase">
-            Kapiti Libraries <span className="font-bold text-amber-500">SpiroForge</span>
+          <h1 className="text-lg font-light tracking-widest text-slate-800 uppercase">
+            Kapiti Libraries <span className="font-bold text-blue-600">SpiroForge</span>
           </h1>
         </div>
         <div className="flex items-center gap-4">
-          <div className="flex items-center bg-white/5 rounded-lg p-0.5 border border-white/10 mr-2 shadow-inner">
+          <div className="flex items-center bg-slate-100 rounded-lg p-0.5 border border-slate-200 mr-2 shadow-inner">
             <button 
               onClick={undo}
               disabled={history.length === 0}
-              className="p-1.5 hover:bg-white/10 rounded disabled:opacity-20 disabled:hover:bg-transparent transition-all active:scale-90"
+              className="p-1.5 hover:bg-slate-200/60 rounded disabled:opacity-20 disabled:hover:bg-transparent transition-all active:scale-90"
               title="Undo (Ctrl+Z)"
             >
-              <Undo2 className="w-4 h-4 text-white" />
+              <Undo2 className="w-4 h-4 text-slate-700" />
             </button>
             <button 
               onClick={redo}
               disabled={future.length === 0}
-              className="p-1.5 hover:bg-white/10 rounded disabled:opacity-20 disabled:hover:bg-transparent transition-all active:scale-90"
+              className="p-1.5 hover:bg-slate-200/60 rounded disabled:opacity-20 disabled:hover:bg-transparent transition-all active:scale-90"
               title="Redo (Ctrl+Shift+Z)"
             >
-              <Redo2 className="w-4 h-4 text-white" />
+              <Redo2 className="w-4 h-4 text-slate-700" />
             </button>
           </div>
               <div className="flex gap-2 items-center">
                 <button 
                   onClick={() => setDimGears(!dimGears)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${dimGears ? 'bg-white/5 border-white/10 text-slate-500' : 'bg-amber-500 border-amber-400 text-black shadow-[0_0_15px_rgba(245,158,11,0.3)]'}`}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${dimGears ? 'bg-slate-100 border-slate-200 text-slate-400' : 'bg-blue-600 border-blue-500 text-white shadow-[0_0_15px_rgba(37,99,235,0.3)]'}`}
                 >
                   {dimGears ? 'Brighten Gears' : 'Dim Gears'}
                 </button>
                 {/* Bed Size Setting */}
-            <div className="flex items-center gap-1.5 bg-white/5 border border-white/10 rounded-lg px-2 py-1 mr-2">
+            <div className="flex items-center gap-1.5 bg-slate-100 border border-slate-200 rounded-lg px-2 py-1 mr-2">
               <button 
                 onClick={() => setShowPrinterBed(!showPrinterBed)}
                 title={showPrinterBed ? "Hide printer bed guide" : "Show printer bed guide"}
-                className={`p-1 rounded transition-colors ${showPrinterBed ? 'bg-amber-500 text-black' : 'text-slate-500 hover:text-white hover:bg-white/10'}`}
+                className={`p-1 rounded transition-colors ${showPrinterBed ? 'bg-blue-600 text-white' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-200'}`}
               >
                 <Maximize2 className="w-3 h-3" />
               </button>
@@ -920,29 +1404,29 @@ export default function App() {
                 type="number" 
                 value={bedSize} 
                 onChange={(e) => setBedSize(parseInt(e.target.value) || 220)}
-                className="bg-transparent text-white w-8 text-center text-[10px] focus:outline-none focus:text-amber-500 font-mono"
+                className="bg-transparent text-slate-800 w-8 text-center text-[10px] focus:outline-none focus:text-blue-600 font-mono font-bold"
               />
-              <span className="text-[8px] text-slate-600">mm</span>
+              <span className="text-[8px] text-slate-400">mm</span>
               <button 
                 onClick={handleFitToBed}
                 title="Scale to fit your printer bed"
-                className="ml-1 p-1 hover:bg-amber-500/20 rounded-md transition-colors group"
+                className="ml-1 p-1 hover:bg-blue-100 rounded-md transition-colors group"
               >
-                <RefreshCw className="w-3 h-3 text-slate-400 group-hover:text-amber-500" />
+                <RefreshCw className="w-3 h-3 text-slate-500 group-hover:text-blue-600" />
               </button>
             </div>
 
             <button 
               onClick={() => downloadSvg('parts')}
-              className="px-4 py-2.5 bg-amber-500 text-black font-bold text-[10px] uppercase tracking-widest hover:bg-amber-400 transition-all hover:scale-[0.98] active:scale-95 shadow-lg shadow-amber-500/20 flex gap-2 items-center"
+              className="px-4 py-2.5 bg-blue-600 text-white font-bold text-[10px] uppercase tracking-widest hover:bg-blue-700 transition-all hover:scale-[0.98] active:scale-95 shadow-lg shadow-blue-500/20 flex gap-2 items-center"
             >
-              <Download className="w-3.5 h-3.5 text-black/60" /> Laser Cutter (SVG)
+              <Download className="w-3.5 h-3.5 text-white/80" /> Laser Cutter (SVG)
             </button>
             <button 
               onClick={handleExportSTL}
-              className="px-4 py-2.5 bg-white/5 text-white font-bold text-[10px] uppercase tracking-widest hover:bg-white/10 transition-all border border-white/10 flex gap-2 items-center"
+              className="px-4 py-2.5 bg-slate-100 text-slate-700 font-bold text-[10px] uppercase tracking-widest hover:bg-slate-200 transition-all border border-slate-200 flex gap-2 items-center"
             >
-              <Box className="w-3.5 h-3.5 text-amber-500" /> 3D Printer (STL)
+              <Box className="w-3.5 h-3.5 text-blue-600" /> 3D Printer (STL)
             </button>
           </div>
         </div>
@@ -951,49 +1435,66 @@ export default function App() {
       <main className="flex-1 flex overflow-hidden">
         
         {/* Sidebar */}
-        <aside className="w-80 border-r border-white/10 bg-[#0c0c0e] p-6 flex flex-col gap-8 shrink-0 overflow-y-auto custom-scrollbar">
+        <aside className="w-80 border-r border-slate-200 bg-white p-6 flex flex-col gap-8 shrink-0 overflow-y-auto custom-scrollbar">
           
           <section>
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-[11px] uppercase tracking-widest text-amber-500/80 font-bold flex items-center gap-2">
-                <Layers className="w-3.5 h-3.5" /> Layer Management
-              </h2>
-              <button 
-                onClick={() => addLayer()}
-                className="text-[9px] uppercase font-bold text-amber-500 bg-amber-500/10 px-2 py-1 rounded border border-amber-500/20 hover:bg-amber-500/20"
-              >
-                + New
-              </button>
+            <div className="flex flex-col gap-3 mb-6">
+              <div className="flex justify-between items-center">
+                <h2 className="text-[11px] uppercase tracking-widest text-blue-600 font-bold flex items-center gap-2">
+                  <Layers className="w-3.5 h-3.5" /> Ring Management
+                </h2>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <button 
+                  onClick={() => addLayer()}
+                  className="text-[9px] uppercase font-bold text-center text-blue-600 bg-blue-50 py-1.5 rounded border border-blue-200/80 hover:bg-blue-100 transition-colors"
+                  id="add-ring-btn"
+                  title="Create a new physical ring shifted to the right"
+                >
+                  + Add Ring
+                </button>
+                <button 
+                  onClick={addRollingGear}
+                  className="text-[9px] uppercase font-bold text-center text-emerald-600 bg-emerald-50 py-1.5 rounded border border-emerald-200/80 hover:bg-emerald-100 transition-colors"
+                  id="add-gear-btn"
+                  title="Add another rolling gear to the currently active ring"
+                >
+                  + Add Gear
+                </button>
+              </div>
             </div>
 
             <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
               {layers.map((layer, idx) => (
                 <div 
                   key={layer.id}
-                  onClick={() => setActiveLayerIndex(idx)}
-                  className={`p-3 rounded-lg border flex items-center justify-between cursor-pointer transition-all ${activeLayerIndex === idx ? 'bg-white/10 border-white/20' : 'bg-white/5 border-white/5 hover:bg-white/10'}`}
+                  onClick={() => {
+                    setActiveLayerIndex(idx);
+                    setPan({ x: -layer.params.offsetX || 0, y: -layer.params.offsetY || 0 });
+                  }}
+                  className={`p-3 rounded-lg border flex items-center justify-between cursor-pointer transition-all ${activeLayerIndex === idx ? 'bg-blue-50 border-blue-200/80 shadow-sm' : 'bg-slate-50/50 border-slate-200/60 hover:bg-slate-50'}`}
                 >
                   <div className="flex items-center gap-3">
                     <div 
                       className="w-2.5 h-2.5 rounded-full shadow-[0_0_8px]" 
-                      style={{ backgroundColor: layer.color, boxShadow: `0 0 8px ${layer.color}66` }}
+                      style={{ backgroundColor: layer.color, boxShadow: `0 0 8px ${layer.color}44` }}
                     />
-                    <span className={`text-[10px] uppercase tracking-widest ${activeLayerIndex === idx ? 'text-white' : 'text-slate-500'}`}>
+                    <span className={`text-[10px] uppercase tracking-widest ${activeLayerIndex === idx ? 'text-blue-900 font-bold' : 'text-slate-600'}`}>
                       {layer.name}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <button 
                       onClick={(e) => { e.stopPropagation(); toggleLayerVisibility(idx); }}
-                      className={`p-1 rounded transition-colors ${layer.visible ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-400'}`}
+                      className={`p-1 rounded transition-colors ${layer.visible ? 'text-slate-500 hover:text-slate-800' : 'text-slate-450 hover:text-slate-600'}`}
                     >
                       <Eye className="w-3.5 h-3.5" />
                     </button>
                     {layers.length > 1 && (
                       <button 
-                         onClick={(e) => { e.stopPropagation(); deleteLayer(idx); }}
-                         className="p-1 text-red-500/50 hover:text-red-500 transition-colors"
-                         title="Delete Layer"
+                        onClick={(e) => { e.stopPropagation(); deleteLayer(idx); }}
+                        className="p-1 text-red-500/60 hover:text-red-600 transition-colors"
+                        title="Delete Ring"
                       >
                          <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -1003,84 +1504,26 @@ export default function App() {
               ))}
             </div>
             
-            <div className="mt-4 pt-4 border-t border-white/5 flex gap-2">
+            <div className="mt-4 pt-4 border-t border-slate-100 flex gap-2">
               <button 
                 onClick={clearOthers}
-                className="flex-1 text-[9px] uppercase font-bold text-slate-500 hover:text-white transition-colors"
-                title="Remove all layers except active"
+                className="flex-1 text-[9px] uppercase font-bold text-slate-500 hover:text-blue-600 transition-colors"
+                title="Remove all rings except active"
               >
                 Clear Others
               </button>
               <button 
                 onClick={handleRefresh}
-                className="flex-1 text-[9px] uppercase font-bold text-slate-500 hover:text-white transition-colors"
+                className="flex-1 text-[9px] uppercase font-bold text-slate-500 hover:text-blue-600 transition-colors"
               >
                 Reset View
               </button>
             </div>
           </section>
 
+          {/* Core Configuration */}
           <section>
-            <h2 className="text-[11px] uppercase tracking-widest text-amber-500/80 mb-6 font-bold flex items-center gap-2 pt-4 border-t border-white/5">
-              <Maximize2 className="w-3.5 h-3.5" /> Transform Configuration
-            </h2>
-            <div className="space-y-6">
-              <div className="space-y-3">
-                <div className="flex justify-between text-[10px] uppercase font-mono">
-                  <span className="text-slate-400">Global Scale</span>
-                  <span className="text-amber-500">{(params.scale * 100).toFixed(0)}%</span>
-                </div>
-                <input 
-                  type="range" min="0.1" max="3.0" step="0.05" 
-                  value={params.scale || 1.0} 
-                  onChange={(e) => updateParams({ scale: parseFloat(e.target.value) || 1.0 })}
-                  onPointerUp={saveHistory}
-                  className="w-full accent-amber-500 h-1 bg-white/10 rounded-full appearance-none cursor-pointer"
-                />
-              </div>
-              <div className="space-y-3">
-                <div className="flex justify-between text-[10px] uppercase font-mono">
-                  <span className="text-slate-400">Position X</span>
-                  <input 
-                    type="number" 
-                    value={params.offsetX?.toFixed(1)} 
-                    onChange={(e) => updateParams({ offsetX: parseFloat(e.target.value) || 0 })}
-                    onBlur={saveHistory}
-                    className="bg-transparent text-white w-14 text-right focus:outline-none"
-                  />
-                </div>
-                <input 
-                  type="range" min="-200" max="200" step="0.5" 
-                  value={params.offsetX || 0} 
-                  onChange={(e) => updateParams({ offsetX: parseFloat(e.target.value) })}
-                  onPointerUp={saveHistory}
-                  className="w-full accent-amber-500 h-1 bg-white/10 rounded-full appearance-none cursor-pointer"
-                />
-              </div>
-              <div className="space-y-3">
-                <div className="flex justify-between text-[10px] uppercase font-mono">
-                  <span className="text-slate-400">Position Y</span>
-                  <input 
-                    type="number" 
-                    value={params.offsetY?.toFixed(1)} 
-                    onChange={(e) => updateParams({ offsetY: parseFloat(e.target.value) || 0 })}
-                    onBlur={saveHistory}
-                    className="bg-transparent text-white w-14 text-right focus:outline-none"
-                  />
-                </div>
-                <input 
-                  type="range" min="-200" max="200" step="0.5" 
-                  value={params.offsetY || 0} 
-                  onChange={(e) => updateParams({ offsetY: parseFloat(e.target.value) })}
-                  onPointerUp={saveHistory}
-                  className="w-full accent-amber-500 h-1 bg-white/10 rounded-full appearance-none cursor-pointer"
-                />
-              </div>
-            </div>
-          </section>
-
-          <section>
-            <h2 className="text-[11px] uppercase tracking-widest text-amber-500/80 mb-6 font-bold flex items-center gap-2 pt-4 border-t border-white/5">
+            <h2 className="text-[11px] uppercase tracking-widest text-blue-600 mb-6 font-bold flex items-center gap-2 pt-4 border-t border-slate-100">
               <Settings2 className="w-3.5 h-3.5" /> Core Configuration
             </h2>
             
@@ -1088,20 +1531,20 @@ export default function App() {
               {/* Ring Teeth Slider */}
               <div className="space-y-4">
                 <div className="flex justify-between text-[10px] uppercase tracking-wider">
-                  <label className="text-slate-400">Nominal Ring Size</label>
+                  <label className="text-slate-500">Nominal Ring Size</label>
                   <div className="flex gap-2 items-center">
-                    <span className="text-amber-500/80 font-mono bg-amber-500/5 px-1.5 rounded border border-amber-500/10">
+                    <span className="text-blue-600 font-mono bg-blue-50 px-1.5 rounded border border-blue-100">
                       {(params.ringTeeth * 6 / Math.PI * (params.scale || 1.0)).toFixed(1)}mm Ø
                     </span>
                     {params.ringShape !== 'circle' && (
-                      <span className="text-amber-500 font-mono bg-amber-500/10 px-1 rounded border border-amber-500/20" title="Actual teeth on sculpted perimeter">
+                      <span className="text-blue-600 font-mono bg-blue-50/70 px-1 rounded border border-blue-100" title="Actual teeth on sculpted perimeter">
                         {actualRingTeeth}T Actual
                       </span>
                     )}
-                    <span className="text-white font-mono bg-white/5 px-1.5 rounded">{params.ringTeeth}T Base</span>
+                    <span className="text-slate-800 font-mono bg-slate-100 px-1.5 rounded">{params.ringTeeth}T Base</span>
                   </div>
                 </div>
-                <div className="relative h-1 w-full bg-white/10 rounded-full group">
+                <div className="relative h-1 w-full bg-slate-200 rounded-full group">
                   <input 
                     type="range" min="32" max="250" step="1" 
                     value={params.ringTeeth} 
@@ -1109,53 +1552,33 @@ export default function App() {
                     onPointerUp={saveHistory}
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                   />
-                  <div className="absolute top-0 left-0 h-full bg-amber-500 rounded-full" style={{ width: `${((params.ringTeeth - 32) / (250 - 32)) * 100}%` }}></div>
-                  <div className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full border-2 border-amber-500 shadow-lg shadow-amber-500/50" style={{ left: `calc(${((params.ringTeeth - 32) / (250 - 32)) * 100}% - 6px)` }}></div>
+                  <div className="absolute top-0 left-0 h-full bg-blue-600 rounded-full" style={{ width: `${((params.ringTeeth - 32) / (250 - 32)) * 100}%` }}></div>
+                  <div className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full border-2 border-blue-600 shadow-md shadow-blue-550/20" style={{ left: `calc(${((params.ringTeeth - 32) / (250 - 32)) * 100}% - 6px)` }}></div>
                 </div>
                 {params.ringShape !== 'circle' && (
-                  <p className="text-[8px] text-slate-500 italic mt-1 bg-white/5 p-1 rounded">
+                  <p className="text-[8px] text-slate-500 italic mt-1 bg-slate-50 p-2 border border-slate-100 rounded">
                     Sculpting adjusted the perimeter. Actual teeth count increased to maintain pitch.
                   </p>
                 )}
-              </div>
-
-              <div className="p-3 rounded-lg bg-white/5 border border-white/5 space-y-2">
-                <div className="flex justify-between items-center text-[10px] uppercase font-mono">
-                  <span className="text-slate-400">Corner Clearance</span>
-                  <span className={isGearTooLarge ? 'text-red-400 font-bold' : 'text-emerald-400'}>
-                    {isGearTooLarge ? 'Collision Risk' : 'Fits Corners'}
-                  </span>
-                </div>
-                <div className="text-[9px] text-slate-500 leading-relaxed mb-2">
-                  Tightest corner radius: <span className="text-slate-300 font-mono">{minCurvature.toFixed(1)}mm</span>
-                </div>
-                <button 
-                  onClick={fitGearToCorners}
-                  disabled={!isGearTooLarge && gearRadius > minCurvature * 0.8}
-                  className="w-full py-2 bg-white/5 hover:bg-white/10 text-white rounded border border-white/10 text-[9px] uppercase font-bold transition-all disabled:opacity-50"
-                  id="fit-gear-btn"
-                >
-                  Auto-Fit Gear to Corners
-                </button>
               </div>
 
               {/* Gear Teeth Slider */}
               <div className="space-y-4">
                 <div className="flex justify-between text-[10px] uppercase tracking-wider">
                   <div className="flex flex-col gap-0.5">
-                    <label className="text-slate-400">Rolling Gear Teeth</label>
-                    <span className="text-[8px] text-slate-500">Max safe: {safeGearTeethLimit}T</span>
+                    <label className="text-slate-500">Rolling Gear Teeth</label>
+                    <span className="text-[8px] text-slate-400">Max safe: {safeGearTeethLimit}T</span>
                   </div>
                   <div className="flex gap-2 items-center">
-                    <span className="text-amber-500/80 font-mono bg-amber-500/5 px-1.5 rounded border border-amber-500/10">
+                    <span className="text-blue-600 font-mono bg-blue-50 px-1.5 rounded border border-blue-100">
                       {(params.gearTeeth * 6 / Math.PI * (params.scale || 1.0)).toFixed(1)}mm Ø
                     </span>
-                    <span className={`font-mono bg-white/5 px-1.5 rounded ${params.gearTeeth > safeGearTeethLimit ? 'text-red-400' : 'text-white'}`}>
+                    <span className={`font-mono bg-slate-100 px-1.5 rounded ${params.gearTeeth > safeGearTeethLimit ? 'text-red-600 font-bold' : 'text-slate-800'}`}>
                       {params.gearTeeth}T
                     </span>
                   </div>
                 </div>
-                <div className="relative h-1 w-full bg-white/10 rounded-full group">
+                <div className="relative h-1 w-full bg-slate-200 rounded-full group">
                   <input 
                     type="range" min="8" max={params.ringTeeth - 1} step="1" 
                     value={params.gearTeeth} 
@@ -1163,86 +1586,108 @@ export default function App() {
                     onPointerUp={saveHistory}
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                   />
-                  <div className="absolute top-0 left-0 h-full bg-amber-500 rounded-full" style={{ width: `${((params.gearTeeth - 8) / (params.ringTeeth - 9)) * 100}%` }}></div>
+                  <div className="absolute top-0 left-0 h-full bg-blue-600 rounded-full" style={{ width: `${((params.gearTeeth - 8) / (params.ringTeeth - 9)) * 100}%` }}></div>
                   
                   {/* Safety Boundary Marker */}
-                  <div className="absolute top-0 bottom-0 w-[1px] bg-red-500/40 z-0" style={{ left: `${((safeGearTeethLimit - 8) / (params.ringTeeth - 9)) * 100}%` }}></div>
+                  <div className="absolute top-0 bottom-0 w-[1px] bg-red-400/60 z-0" style={{ left: `${((safeGearTeethLimit - 8) / (params.ringTeeth - 9)) * 100}%` }}></div>
                   
-                  <div className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full border-2 border-amber-500 shadow-lg shadow-amber-500/50" style={{ left: `calc(${((params.gearTeeth - 8) / (params.ringTeeth - 9)) * 100}% - 6px)` }}></div>
+                  <div className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full border-2 border-blue-600 shadow-md shadow-blue-550/20" style={{ left: `calc(${((params.gearTeeth - 8) / (params.ringTeeth - 9)) * 100}% - 6px)` }}></div>
                 </div>
               </div>
 
               {/* Hole Offsets Editor */}
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
-                  <label className="text-[10px] uppercase tracking-wider text-slate-400">Pen Hole Distributions</label>
+                  <label className="text-[10px] uppercase tracking-wider text-slate-500">Pen Hole Distributions</label>
                   <button 
                     onClick={() => {
-                      const newOffsets = [...params.holeOffsets, 50];
+                      const newOffsets = [...params.holeOffsets, Math.min(50, maxHPercent)];
+                      const newHolesVisibility = params.hiddenHoles ? [...params.hiddenHoles, false] : Array(params.holeOffsets.length).fill(false).concat(false);
                       const newLayers = layers.map((layer, idx) => 
-                        idx === activeLayerIndex ? { ...layer, params: { ...layer.params, holeOffsets: newOffsets } } : layer
+                        idx === activeLayerIndex ? { ...layer, params: { ...layer.params, holeOffsets: newOffsets, hiddenHoles: newHolesVisibility } } : layer
                       );
                       pushToHistory(newLayers, activeLayerIndex);
                       setLayers(newLayers);
                     }}
-                    className="text-[9px] uppercase font-bold text-amber-500 hover:text-amber-400 transition-colors"
+                    className="text-[9px] uppercase font-bold text-blue-600 hover:text-blue-700 transition-colors"
                   >
                     + Add Hole
                   </button>
                 </div>
                 
                 <div className="space-y-4 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
-                  {params.holeOffsets.map((offset, idx) => (
-                    <div key={idx} className="space-y-2 group">
-                      <div className="flex justify-between text-[9px] font-mono">
-                        <span className="text-slate-500">Hole #{idx + 1}</span>
-                        <div className="flex items-center gap-2">
-                          <span className="text-white">{offset}%</span>
-                          {params.holeOffsets.length > 1 && (
+                  {params.holeOffsets.map((offset, idx) => {
+                    const isHidden = params.hiddenHoles?.[idx] === true;
+                    return (
+                      <div key={idx} className="space-y-2 group">
+                        <div className="flex justify-between text-[9px] font-mono">
+                          <span className={`transition-colors ${isHidden ? 'text-slate-400 line-through' : 'text-slate-500'}`}>Hole #{idx + 1}</span>
+                          <div className="flex items-center gap-2">
+                            <span className={`font-bold transition-colors ${isHidden ? 'text-slate-400' : 'text-slate-800'}`}>{offset}%</span>
                             <button 
                               onClick={() => {
-                                const newOffsets = [...params.holeOffsets];
-                                newOffsets.splice(idx, 1);
-                                const newLayers = layers.map((layer, lIdx) => 
-                                  lIdx === activeLayerIndex ? { ...layer, params: { ...layer.params, holeOffsets: newOffsets } } : layer
-                                );
-                                pushToHistory(newLayers, activeLayerIndex);
-                                setLayers(newLayers);
+                                const newHolesVisibility = params.hiddenHoles ? [...params.hiddenHoles] : Array(params.holeOffsets.length).fill(false);
+                                while (newHolesVisibility.length < params.holeOffsets.length) {
+                                  newHolesVisibility.push(false);
+                                }
+                                newHolesVisibility[idx] = !newHolesVisibility[idx];
+                                updateParams({ hiddenHoles: newHolesVisibility });
+                                saveHistory();
                               }}
-                              className="text-red-500/50 hover:text-red-500 text-[8px] uppercase tracking-tighter"
+                              className="p-1 bg-slate-50 hover:bg-slate-100 text-slate-500 hover:text-slate-800 rounded transition-all flex items-center justify-center border border-slate-200"
+                              title={isHidden ? "Show Hole Display" : "Hide Hole Display"}
                             >
-                              Del
+                              {isHidden ? <EyeOff className="w-3 h-3 text-slate-400" /> : <Eye className="w-3 h-3 text-blue-600" />}
                             </button>
-                          )}
+                            {params.holeOffsets.length > 1 && (
+                              <button 
+                                onClick={() => {
+                                  const newOffsets = [...params.holeOffsets];
+                                  newOffsets.splice(idx, 1);
+                                  const newHolesVisibility = params.hiddenHoles ? [...params.hiddenHoles] : Array(params.holeOffsets.length).fill(false);
+                                  newHolesVisibility.splice(idx, 1);
+                                  const newLayers = layers.map((layer, lIdx) => 
+                                    lIdx === activeLayerIndex ? { ...layer, params: { ...layer.params, holeOffsets: newOffsets, hiddenHoles: newHolesVisibility } } : layer
+                                  );
+                                  pushToHistory(newLayers, activeLayerIndex);
+                                  setLayers(newLayers);
+                                }}
+                                className="px-1.5 py-0.5 bg-red-50 hover:bg-red-100 text-red-500 hover:text-red-650 text-[8px] uppercase font-bold rounded transition-colors"
+                              >
+                                Del
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                        <div className="relative h-1 w-full bg-slate-200 rounded-full">
+                          <input 
+                            type="range" min="0" max={maxHPercent} step="1" 
+                            value={offset} 
+                            disabled={isHidden}
+                            onChange={(e) => {
+                              const newOffsets = [...params.holeOffsets];
+                              newOffsets[idx] = parseInt(e.target.value);
+                              updateParams({ holeOffsets: newOffsets });
+                            }}
+                            onPointerUp={saveHistory}
+                            className={`absolute inset-0 w-full h-full opacity-0 z-10 ${isHidden ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                          />
+                          <div className={`absolute top-0 left-0 h-full rounded-full transition-colors ${isHidden ? 'bg-slate-300' : 'bg-blue-600'}`} style={{ width: `${(offset / maxHPercent) * 100}%` }}></div>
+                          <div className={`absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-white rounded-full border shadow-sm transition-colors ${isHidden ? 'border-slate-300' : 'border-blue-600/80'}`} style={{ left: `calc(${(offset / maxHPercent) * 100}% - 5px)` }}></div>
                         </div>
                       </div>
-                      <div className="relative h-1 w-full bg-white/10 rounded-full">
-                        <input 
-                          type="range" min="0" max="150" step="1" 
-                          value={offset} 
-                          onChange={(e) => {
-                            const newOffsets = [...params.holeOffsets];
-                            newOffsets[idx] = parseInt(e.target.value);
-                            updateParams({ holeOffsets: newOffsets });
-                          }}
-                          onPointerUp={saveHistory}
-                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                        />
-                        <div className="absolute top-0 left-0 h-full bg-amber-500 rounded-full" style={{ width: `${(offset / 150) * 100}%` }}></div>
-                        <div className="absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-white rounded-full border border-amber-500" style={{ left: `calc(${(offset / 150) * 100}% - 5px)` }}></div>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
 
               {/* Path Completion Slider */}
               <div className="space-y-4">
                 <div className="flex justify-between text-[10px] uppercase tracking-wider">
-                  <label className="text-slate-400">Path Completion (Rotations)</label>
-                  <span className="text-white font-mono bg-white/5 px-1.5 rounded">{params.maxRotations}</span>
+                  <label className="text-slate-500">Path Completion (Rotations)</label>
+                  <span className="text-slate-800 font-mono bg-slate-100 px-1.5 rounded">{params.maxRotations}</span>
                 </div>
-                <div className="relative h-1 w-full bg-white/10 rounded-full group">
+                <div className="relative h-1 w-full bg-slate-200 rounded-full group">
                   <input 
                     type="range" min="1" max="100" step="1" 
                     value={params.maxRotations} 
@@ -1250,157 +1695,26 @@ export default function App() {
                     onPointerUp={saveHistory}
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                   />
-                  <div className="absolute top-0 left-0 h-full bg-amber-500 rounded-full" style={{ width: `${(params.maxRotations / 100) * 100}%` }}></div>
-                  <div className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full border-2 border-amber-500 shadow-lg shadow-amber-500/50" style={{ left: `calc(${(params.maxRotations / 100) * 100}% - 6px)` }}></div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Simulation System removed from sidebar */}
-
-          <section>
-            <h2 className="text-[11px] uppercase tracking-widest text-amber-500/80 mb-4 font-bold flex items-center gap-2 pt-4 border-t border-white/5">
-              <Layers className="w-3.5 h-3.5" /> Gear & Path Type
-            </h2>
-            <div className="space-y-6">
-               <div>
-                  <h3 className="text-[10px] uppercase tracking-widest text-slate-500 mb-3">Geometric Flow</h3>
-                  <div className="flex flex-col gap-2">
-                    <div className="grid grid-cols-2 gap-2">
-                      {(['hypotrochoid', 'epitrochoid'] as const).map(type => (
-                        <button 
-                          key={type}
-                          onClick={() => {
-                            updateParams({ type });
-                            saveHistory();
-                          }}
-                          className={`py-2 px-3 border border-white/5 rounded text-[9px] uppercase tracking-widest font-bold transition-all relative group ${params.type === type ? 'bg-amber-500 text-black border-amber-500' : 'bg-white/5 hover:bg-white/10'}`}
-                        >
-                          {type === 'hypotrochoid' ? 'Internal' : 'External'}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-              </div>
-
-              <div>
-                <h3 className="text-[10px] uppercase tracking-widest text-slate-500 mb-3">Gear Shape</h3>
-                <div className="grid grid-cols-3 gap-2">
-                  {(['circle', 'flower', 'triangle', 'square', 'oval', 'egg'] as const).map(shape => (
-                    <button 
-                      key={shape}
-                      onClick={() => {
-                        updateParams({ gearShape: shape });
-                        saveHistory();
-                      }}
-                      className={`py-2 px-1 border border-white/5 rounded text-[9px] uppercase tracking-widest font-bold transition-all ${params.gearShape === shape ? 'bg-white text-black border-white' : 'bg-white/5 hover:bg-white/10'}`}
-                    >
-                      {shape}
-                    </button>
-                  ))}
+                  <div className="absolute top-0 left-0 h-full bg-blue-600 rounded-full" style={{ width: `${(params.maxRotations / 100) * 100}%` }}></div>
+                  <div className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full border-2 border-blue-600 shadow-md shadow-blue-550/20" style={{ left: `calc(${(params.maxRotations / 100) * 100}% - 6px)` }}></div>
                 </div>
               </div>
 
-              {params.gearShape !== 'circle' && (
-                <div className="space-y-3 pt-1">
-                  <div className="flex justify-between text-[10px] uppercase font-mono">
-                    <span className="text-slate-400">Gear Intensity</span>
-                    <span className="text-white">{(params.shapeIntensity * 100).toFixed(0)}%</span>
-                  </div>
-                  <input 
-                    type="range" min="0.1" max="2.0" step="0.1" 
-                    value={params.shapeIntensity} 
-                    onChange={(e) => updateParams({ shapeIntensity: parseFloat(e.target.value) })}
-                    onPointerUp={saveHistory}
-                    className="w-full accent-white h-1 bg-white/10 rounded-full appearance-none cursor-pointer"
-                  />
-                </div>
-              )}
-
-              <div className="pt-2 p-3 bg-amber-500/5 border border-amber-500/10 rounded-lg space-y-4">
-                <div className="flex items-center justify-between">
-                  <label className="text-[10px] uppercase tracking-widest font-bold text-amber-500/80">Multi-Stage Mode</label>
-                  <div 
-                    onClick={() => {
-                      updateParams({ isMultiStage: !params.isMultiStage });
-                      saveHistory();
-                    }}
-                    className={`w-8 h-4 rounded-full p-0.5 cursor-pointer transition-colors ${params.isMultiStage ? 'bg-amber-500' : 'bg-white/10'}`}
-                  >
-                    <div className={`w-3 h-3 bg-white rounded-full transition-transform ${params.isMultiStage ? 'translate-x-4' : 'translate-x-0'}`} />
-                  </div>
-                </div>
-                
-                {params.isMultiStage && (
-                  <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
-                    {/* Gear 2 Outer Teeth */}
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-[10px] uppercase font-mono">
-                        <span className="text-slate-400 text-[8px]">Gear 2 Size</span>
-                        <span className="text-amber-500">{params.stageTwoTeeth}T</span>
-                      </div>
-                      <input 
-                        type="range" min="8" max={params.stageOneInternalTeeth - 4} step="1" 
-                        value={params.stageTwoTeeth} 
-                        onChange={(e) => updateParams({ stageTwoTeeth: parseInt(e.target.value) })}
-                        onPointerUp={saveHistory}
-                        className="w-full accent-amber-500 h-1 bg-white/10 rounded-full appearance-none cursor-pointer"
-                      />
-                    </div>
-
-                    {/* Gear 1 Internal Rail Teeth */}
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-[10px] uppercase font-mono">
-                        <span className="text-slate-400 text-[8px]">Gear 1 Rail</span>
-                        <span className="text-amber-500">{params.stageOneInternalTeeth}T</span>
-                      </div>
-                      <input 
-                        type="range" min="32" max={params.gearTeeth - 4} step="1" 
-                        value={params.stageOneInternalTeeth} 
-                        onChange={(e) => updateParams({ stageOneInternalTeeth: parseInt(e.target.value) })}
-                        onPointerUp={saveHistory}
-                        className="w-full accent-amber-500 h-1 bg-white/10 rounded-full appearance-none cursor-pointer"
-                      />
-                    </div>
-
-                    {/* Rail Offset (Eccentricity) */}
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-[10px] uppercase font-mono">
-                        <span className="text-slate-400 text-[8px]">Rail Offset</span>
-                        <span className="text-amber-500">{params.railOffset.toFixed(1)}mm</span>
-                      </div>
-                      <input 
-                         type="range" min="-20" max="20" step="0.5" 
-                         value={params.railOffset} 
-                         onChange={(e) => updateParams({ railOffset: parseFloat(e.target.value) })}
-                         onPointerUp={saveHistory}
-                         className="w-full accent-white h-1 bg-white/10 rounded-full appearance-none cursor-pointer"
-                      />
-                    </div>
-
-                    <p className="text-[8px] text-slate-500 italic leading-tight pt-2 border-t border-white/5">
-                      Adds a secondary orbital frequency. Gear 2 rolls inside Gear 1's adjustable rail.
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <div className="flex justify-between items-center mb-3">
-                  <h3 className="text-[10px] uppercase tracking-widest text-slate-500">Ring Profile</h3>
+              {/* Ring Profile Options */}
+              <div className="space-y-4 pt-4 border-t border-slate-100">
+                <div className="flex justify-between items-center">
+                  <label className="text-[10px] uppercase tracking-wider text-slate-550 font-semibold">Ring Profile Shape</label>
                   <button 
                     onClick={() => {
-                      // Small vibration or visual feedback
                       const btn = document.getElementById('refresh-mesh-btn');
                       if (btn) btn.classList.add('scale-95', 'opacity-50');
                       setTimeout(() => {
-                        updateParams({ ...params }); // Trigger re-render/logic update
+                        updateParams({ ...params });
                         if (btn) btn.classList.remove('scale-95', 'opacity-50');
                       }, 100);
                     }}
                     id="refresh-mesh-btn"
-                    className="p-1 px-2 bg-white/5 hover:bg-amber-500/20 border border-white/10 rounded text-[8px] uppercase tracking-tighter text-slate-400 hover:text-amber-500 transition-all flex items-center gap-1"
+                    className="p-1 px-2 bg-slate-50 hover:bg-blue-50 border border-slate-200 rounded text-[8px] uppercase tracking-tighter text-slate-600 hover:text-blue-600 transition-all flex items-center gap-1 font-bold"
                   >
                     <RefreshCw className="w-2.5 h-2.5" />
                     Refresh Mesh
@@ -1415,7 +1729,7 @@ export default function App() {
                           updateParams({ ringShape: shape });
                           saveHistory();
                         }}
-                        className={`py-2 px-1 border border-white/5 rounded text-[9px] uppercase tracking-widest font-bold transition-all ${params.ringShape === shape ? 'bg-white/20 text-white border-white/40' : 'bg-white/5 hover:bg-white/10'}`}
+                        className={`py-2 px-1 border rounded text-[9px] uppercase tracking-widest font-bold transition-all ${params.ringShape === shape ? 'bg-blue-600 text-white border-blue-500 shadow-sm' : 'bg-slate-50/50 hover:bg-slate-50 border-slate-200/80 text-slate-600'}`}
                       >
                         {shape}
                       </button>
@@ -1423,7 +1737,7 @@ export default function App() {
                   </div>
                   <button 
                     onClick={() => fileInputRef.current?.click()}
-                    className="w-full py-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 border border-amber-500/30 rounded text-[9px] uppercase tracking-widest font-bold transition-all flex items-center justify-center gap-2 group"
+                    className="w-full py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-100 rounded text-[9px] uppercase tracking-widest font-bold transition-all flex items-center justify-center gap-2 group"
                   >
                     <Upload className="w-3.5 h-3.5 group-hover:-translate-y-0.5 transition-transform" />
                     Import SVG Profile
@@ -1436,41 +1750,275 @@ export default function App() {
                     onChange={handleFileUpload}
                   />
                 </div>
+
+                {params.ringShape === 'custom' && params.customRingPoints && (
+                  <div className="mt-4 animate-in fade-in">
+                    <RingBezierEditor 
+                      points={params.customRingPoints} 
+                      tension={params.ringTension}
+                      teeth={actualRingTeeth}
+                      onChange={(points) => updateParams({ customRingPoints: points })} 
+                      onTensionChange={(t) => updateParams({ ringTension: t })}
+                      onFinishChange={saveHistory}
+                    />
+                  </div>
+                )}
+
+                {params.ringShape !== 'circle' && params.ringShape !== 'custom' && (
+                  <div className="space-y-3 pt-2">
+                    <div className="flex justify-between text-[10px] uppercase font-mono">
+                      <span className="text-slate-500">Ring Distortion</span>
+                      <span className="text-slate-800 font-bold">{(params.ringIntensity * 100).toFixed(0)}%</span>
+                    </div>
+                    <div className="relative h-1 w-full bg-slate-200 rounded-full group">
+                      <input 
+                        type="range" min="0.1" max="1.5" step="0.1" 
+                        value={params.ringIntensity} 
+                        onChange={(e) => updateParams({ ringIntensity: parseFloat(e.target.value) })}
+                        onPointerUp={saveHistory}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                      />
+                      <div className="absolute top-0 left-0 h-full bg-blue-600 rounded-full" style={{ width: `${((params.ringIntensity - 0.1) / (1.5 - 0.1)) * 100}%` }}></div>
+                      <div className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full border-2 border-blue-600 shadow-md shadow-blue-550/20" style={{ left: `calc(${((params.ringIntensity - 0.1) / (1.5 - 0.1)) * 100}% - 6px)` }}></div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
+
+          {/* Gear & Path Type */}
+          <section>
+            <h2 className="text-[11px] uppercase tracking-widest text-blue-600 mb-4 font-bold flex items-center gap-2 pt-4 border-t border-slate-100">
+              <Layers className="w-3.5 h-3.5" /> Gear & Flow Shapes
+            </h2>
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-[10px] uppercase tracking-widest text-slate-500 mb-3 font-semibold">Geometric Flow</h3>
+                <div className="flex flex-col gap-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    {(['hypotrochoid', 'epitrochoid'] as const).map(type => (
+                      <button 
+                        key={type}
+                        onClick={() => {
+                          updateParams({ type });
+                          saveHistory();
+                        }}
+                        className={`py-2 px-3 border rounded text-[9px] uppercase tracking-widest font-bold transition-all relative group ${params.type === type ? 'bg-blue-600 text-white border-blue-500 shadow-sm' : 'bg-slate-50/50 hover:bg-slate-50 border-slate-200/80 text-slate-600'}`}
+                      >
+                        {type === 'hypotrochoid' ? 'Internal' : 'External'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
 
-              {params.ringShape === 'custom' && params.customRingPoints && (
-                <RingBezierEditor 
-                  points={params.customRingPoints} 
-                  tension={params.ringTension}
-                  teeth={actualRingTeeth}
-                  onChange={(points) => updateParams({ customRingPoints: points })} 
-                  onTensionChange={(t) => updateParams({ ringTension: t })}
-                  onFinishChange={saveHistory}
-                />
-              )}
+              <div>
+                <h3 className="text-[10px] uppercase tracking-widest text-slate-500 mb-3 font-semibold">Gear Shape</h3>
+                <div className="grid grid-cols-3 gap-2">
+                  {(['circle', 'flower', 'triangle', 'square', 'oval', 'egg'] as const).map(shape => (
+                    <button 
+                      key={shape}
+                      onClick={() => {
+                        updateParams({ gearShape: shape });
+                        saveHistory();
+                      }}
+                      className={`py-2 px-1 border rounded text-[9px] uppercase tracking-widest font-bold transition-all ${params.gearShape === shape ? 'bg-blue-600 text-white border-blue-500 shadow-sm' : 'bg-slate-50/50 hover:bg-slate-50 border-slate-200/80 text-slate-600'}`}
+                    >
+                      {shape}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-              {params.ringShape !== 'circle' && params.ringShape !== 'custom' && (
+              {params.gearShape !== 'circle' && (
                 <div className="space-y-3 pt-1">
                   <div className="flex justify-between text-[10px] uppercase font-mono">
-                    <span className="text-slate-400">Ring Distortion</span>
-                    <span className="text-white">{(params.ringIntensity * 100).toFixed(0)}%</span>
+                    <span className="text-slate-500">Gear Intensity</span>
+                    <span className="text-slate-800 font-bold">{(params.shapeIntensity * 100).toFixed(0)}%</span>
                   </div>
                   <input 
-                    type="range" min="0.1" max="1.5" step="0.1" 
-                    value={params.ringIntensity} 
-                    onChange={(e) => updateParams({ ringIntensity: parseFloat(e.target.value) })}
+                    type="range" min="0.1" max="2.0" step="0.1" 
+                    value={params.shapeIntensity} 
+                    onChange={(e) => updateParams({ shapeIntensity: parseFloat(e.target.value) })}
                     onPointerUp={saveHistory}
-                    className="w-full accent-white h-1 bg-white/10 rounded-full appearance-none cursor-pointer"
+                    className="w-full accent-blue-600 h-1 bg-slate-200 rounded-full appearance-none cursor-pointer"
                   />
                 </div>
               )}
             </div>
           </section>
 
+          {/* Advanced Mode Toggle & Container */}
+          <div className="pt-4 border-t border-slate-100">
+            <button 
+              onClick={() => setShowAdvanced(!showAdvanced)}
+              className="w-full flex justify-between items-center py-2.5 px-3 bg-blue-50/40 hover:bg-blue-50 rounded-lg text-[10px] uppercase tracking-widest font-bold text-blue-600 hover:text-blue-700 transition-all border border-blue-100 shadow-sm"
+              id="toggle-advanced-btn"
+            >
+              <span className="flex items-center gap-2 font-mono">
+                <Sliders className="w-3.5 h-3.5" /> Advanced Settings
+              </span>
+              <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${showAdvanced ? 'rotate-180' : ''}`} />
+            </button>
+            
+            {showAdvanced && (
+              <div className="mt-6 space-y-8 animate-in fade-in duration-200">
+                {/* Transform Configuration */}
+                <div className="space-y-6">
+                  <h3 className="text-[10px] uppercase tracking-widest text-slate-550 font-bold flex items-center gap-2">
+                    <Maximize2 className="w-3.5 h-3.5" /> Scaling & Placement
+                  </h3>
+                  <div className="space-y-3">
+                    <div className="flex justify-between text-[10px] uppercase font-mono">
+                      <span className="text-slate-500">Global Scale</span>
+                      <span className="text-blue-600 font-bold">{(params.scale * 100).toFixed(0)}%</span>
+                    </div>
+                    <input 
+                      type="range" min="0.1" max={Math.min(3.0, getMaxScale(params))} step="0.01" 
+                      value={params.scale || 1.0} 
+                      onChange={(e) => updateParams({ scale: parseFloat(e.target.value) || 1.0 })}
+                      onPointerUp={saveHistory}
+                      className="w-full accent-blue-600 h-1 bg-slate-200 rounded-full appearance-none cursor-pointer"
+                    />
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex justify-between text-[10px] uppercase font-mono">
+                      <span className="text-slate-500">Position X</span>
+                      <input 
+                        type="number" 
+                        value={params.offsetX?.toFixed(1)} 
+                        onChange={(e) => updateParams({ offsetX: parseFloat(e.target.value) || 0 })}
+                        onBlur={saveHistory}
+                        className="bg-transparent text-slate-800 w-14 text-right focus:outline-none"
+                      />
+                    </div>
+                    <input 
+                      type="range" min="-200" max="200" step="0.5" 
+                      value={params.offsetX || 0} 
+                      onChange={(e) => updateParams({ offsetX: parseFloat(e.target.value) })}
+                      onPointerUp={saveHistory}
+                      className="w-full accent-blue-600 h-1 bg-slate-200 rounded-full appearance-none cursor-pointer"
+                    />
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex justify-between text-[10px] uppercase font-mono">
+                      <span className="text-slate-500">Position Y</span>
+                      <input 
+                        type="number" 
+                        value={params.offsetY?.toFixed(1)} 
+                        onChange={(e) => updateParams({ offsetY: parseFloat(e.target.value) || 0 })}
+                        onBlur={saveHistory}
+                        className="bg-transparent text-slate-800 w-14 text-right focus:outline-none"
+                      />
+                    </div>
+                    <input 
+                      type="range" min="-200" max="200" step="0.5" 
+                      value={params.offsetY || 0} 
+                      onChange={(e) => updateParams({ offsetY: parseFloat(e.target.value) })}
+                      onPointerUp={saveHistory}
+                      className="w-full accent-blue-600 h-1 bg-slate-200 rounded-full appearance-none cursor-pointer"
+                    />
+                  </div>
+                </div>
+
+                {/* Corner Clearance info */}
+                <div className="p-3 rounded-lg bg-slate-50 border border-slate-200/60 space-y-2">
+                  <div className="flex justify-between items-center text-[10px] uppercase font-mono">
+                    <span className="text-slate-500 font-bold">Corner Clearance</span>
+                    <span className={isGearTooLarge ? 'text-red-400 font-bold' : 'text-emerald-450 font-bold'}>
+                      {isGearTooLarge ? 'Collision Risk' : 'Fits Corners'}
+                    </span>
+                  </div>
+                  <div className="text-[9px] text-slate-500 leading-relaxed mb-2">
+                    Tightest corner radius: <span className="text-slate-700 font-mono font-bold">{minCurvature.toFixed(1)}mm</span>
+                  </div>
+                  <button 
+                    onClick={fitGearToCorners}
+                    disabled={!isGearTooLarge && gearRadius > minCurvature * 0.8}
+                    className="w-full py-2 bg-slate-50 hover:bg-slate-100 text-slate-605 rounded border border-slate-200 text-[9px] uppercase font-bold transition-all disabled:opacity-50"
+                    id="fit-gear-btn"
+                  >
+                    Auto-Fit Gear to Corners
+                  </button>
+                </div>
+
+                {/* Multi-Stage Mode */}
+                <div className="p-3 bg-blue-50/40 border border-blue-100 rounded-lg space-y-4">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[10px] uppercase tracking-widest font-bold text-blue-600 font-mono">Multi-Stage Mode</label>
+                    <div 
+                      onClick={() => {
+                        updateParams({ isMultiStage: !params.isMultiStage });
+                        saveHistory();
+                      }}
+                      className={`w-8 h-4 rounded-full p-0.5 cursor-pointer transition-colors ${params.isMultiStage ? 'bg-blue-600' : 'bg-slate-200'}`}
+                    >
+                      <div className={`w-3 h-3 bg-white rounded-full transition-transform ${params.isMultiStage ? 'translate-x-4' : 'translate-x-0'}`} />
+                    </div>
+                  </div>
+                  
+                  {params.isMultiStage && (
+                    <div className="space-y-4 animate-in fade-in">
+                      {/* Gear 2 Outer Teeth */}
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-[10px] uppercase font-mono">
+                          <span className="text-slate-400 text-[8px]">Gear 2 Size</span>
+                          <span className="text-blue-600 font-bold">{params.stageTwoTeeth}T</span>
+                        </div>
+                        <input 
+                          type="range" min="8" max={params.stageOneInternalTeeth - 4} step="1" 
+                          value={params.stageTwoTeeth} 
+                          onChange={(e) => updateParams({ stageTwoTeeth: parseInt(e.target.value) })}
+                          onPointerUp={saveHistory}
+                          className="w-full accent-blue-600 h-1 bg-slate-200 rounded-full appearance-none cursor-pointer"
+                        />
+                      </div>
+
+                      {/* Gear 1 Internal Rail Teeth */}
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-[10px] uppercase font-mono">
+                          <span className="text-slate-400 text-[8px]">Gear 1 Rail</span>
+                          <span className="text-blue-600 font-bold">{params.stageOneInternalTeeth}T</span>
+                        </div>
+                        <input 
+                          type="range" min="32" max={params.gearTeeth - 4} step="1" 
+                          value={params.stageOneInternalTeeth} 
+                          onChange={(e) => updateParams({ stageOneInternalTeeth: parseInt(e.target.value) })}
+                          onPointerUp={saveHistory}
+                          className="w-full accent-blue-600 h-1 bg-slate-200 rounded-full appearance-none cursor-pointer"
+                        />
+                      </div>
+
+                      {/* Rail Offset (Eccentricity) */}
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-[10px] uppercase font-mono">
+                          <span className="text-slate-400 text-[8px]">Rail Offset</span>
+                          <span className="text-blue-600 font-bold">{params.railOffset.toFixed(1)}mm</span>
+                        </div>
+                        <input 
+                           type="range" min="-20" max="20" step="0.5" 
+                           value={params.railOffset} 
+                           onChange={(e) => updateParams({ railOffset: parseFloat(e.target.value) })}
+                           onPointerUp={saveHistory}
+                           className="w-full accent-blue-600 h-1 bg-slate-200 rounded-full appearance-none cursor-pointer"
+                        />
+                      </div>
+
+                      <p className="text-[8px] text-slate-500 italic leading-tight pt-2 border-t border-slate-100">
+                        Adds a secondary orbital frequency. Gear 2 rolls inside Gear 1's adjustable rail.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
           <section className="pt-2">
              <button 
                 onClick={handleRefresh}
-                className="w-full py-3 border border-white/10 rounded text-[10px] uppercase tracking-[0.2em] hover:bg-white/5 transition-colors flex items-center justify-center gap-2"
+                className="w-full py-3 border border-slate-200 rounded-lg text-[10px] uppercase tracking-[0.2em] bg-white hover:bg-slate-50 text-slate-700 hover:text-blue-600 font-bold shadow-sm transition-all flex items-center justify-center gap-2"
              >
                 <RotateCcw className="w-3.5 h-3.5" /> Reset Simulation
              </button>
@@ -1478,21 +2026,21 @@ export default function App() {
 
           {/* Placeholder to maintain gap if needed, or just remove */}
         </aside>        {/* Content Area */}
-        <section className="flex-1 flex flex-col bg-[#050505] p-6 lg:p-10 gap-6 overflow-hidden">
+        <section className="flex-1 flex flex-col bg-slate-50 p-6 lg:p-10 gap-6 overflow-hidden">
           
           {/* Simulation Top Bar */}
-          <div className="flex items-center gap-8 bg-black/40 border border-white/5 rounded-2xl p-4 px-8 shadow-2xl backdrop-blur-md">
+          <div className="flex items-center gap-8 bg-white border border-slate-200/80 rounded-2xl p-4 px-8 shadow-md shadow-slate-100/40">
             <div className="flex items-center gap-4">
               <button 
                 onClick={() => setIsAnimating(!isAnimating)}
-                className={`px-8 py-2 rounded-lg text-[10px] uppercase font-bold tracking-[0.2em] transition-all flex items-center gap-2 border ${isAnimating ? 'bg-amber-500 text-black border-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.3)]' : 'bg-white/5 border-white/10 text-white hover:bg-white/10'}`}
+                className={`px-8 py-2 rounded-lg text-[10px] uppercase font-bold tracking-[0.2em] transition-all flex items-center gap-2 border ${isAnimating ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-500/15' : 'bg-slate-50 border border-slate-250 text-slate-705 hover:bg-slate-100'}`}
               >
                 <Activity className={`w-3.5 h-3.5 ${isAnimating ? 'animate-pulse' : ''}`} /> 
                 {isAnimating ? 'STOP' : 'SIMULATE'}
               </button>
               <button 
                 onClick={() => setAnimationTheta(0)}
-                className="p-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-all text-slate-400 hover:text-white"
+                className="p-2 bg-slate-50 border border-slate-200 rounded-lg hover:bg-slate-100 transition-all text-slate-500 hover:text-blue-600"
                 title="Reset Animation"
               >
                 <RotateCcw className="w-4 h-4" />
@@ -1502,7 +2050,7 @@ export default function App() {
             <div className="flex-1 flex flex-col gap-2">
               <div className="flex justify-between text-[8px] uppercase tracking-widest font-mono text-slate-500">
                 <span>Timeline Progress</span>
-                <span className="text-amber-500">{((animationTheta / (params.maxRotations * Math.PI * 2)) * 100).toFixed(0)}%</span>
+                <span className="text-blue-600 font-bold">{((animationTheta / (params.maxRotations * Math.PI * 2)) * 100).toFixed(0)}%</span>
               </div>
               <input 
                 type="range" min="0" max={params.maxRotations * Math.PI * 2} step="0.01" 
@@ -1511,20 +2059,20 @@ export default function App() {
                   setAnimationTheta(parseFloat(e.target.value));
                   if (isAnimating) setIsAnimating(false);
                 }}
-                className="w-full accent-amber-500 h-1 bg-white/10 rounded-full appearance-none cursor-pointer"
+                className="w-full accent-blue-600 h-1 bg-slate-200 rounded-full appearance-none cursor-pointer"
               />
             </div>
 
             <div className="w-48 flex flex-col gap-2">
               <div className="flex justify-between text-[8px] uppercase tracking-widest font-mono text-slate-500">
                 <span>Feed Speed</span>
-                <span className="text-white">{animationSpeed.toFixed(1)}x</span>
+                <span className="text-slate-800 font-bold">{animationSpeed.toFixed(1)}x</span>
               </div>
               <input 
                 type="range" min="0.2" max="5" step="0.1" 
                 value={animationSpeed} 
                 onChange={(e) => setAnimationSpeed(parseFloat(e.target.value))}
-                className="w-full accent-white h-1 bg-white/10 rounded-full appearance-none cursor-pointer"
+                className="w-full accent-blue-600 h-1 bg-slate-200 rounded-full appearance-none cursor-pointer"
               />
             </div>
           </div>
@@ -1537,7 +2085,7 @@ export default function App() {
             </div>
             
             <div 
-              className={`flex-1 bg-[#020203] border border-white/10 rounded-2xl flex items-center justify-center relative overflow-hidden cursor-grab shadow-2xl ${isDragging ? 'cursor-grabbing' : ''}`}
+              className={`flex-1 bg-white border border-slate-200/85 rounded-2xl flex items-center justify-center relative overflow-hidden cursor-grab shadow-sm ${isDragging ? 'cursor-grabbing' : ''}`}
               onWheel={handleWheel}
               onMouseDown={handleMouseDown}
               onMouseMove={handleMouseMove}
@@ -1545,34 +2093,50 @@ export default function App() {
               onMouseLeave={handleMouseUp}
             >
               {/* Engineering Grid */}
-              <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle, #f59e0b 0.5px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
-              <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'linear-gradient(rgba(245,158,11,0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(245,158,11,0.2) 1px, transparent 1px)', backgroundSize: '120px 120px' }}></div>
+              <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle, #3b82f6 0.5px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
+              <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'linear-gradient(rgba(59,130,246,0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(59,130,246,0.15) 1px, transparent 1px)', backgroundSize: '120px 120px' }}></div>
               
               {/* UI Overlays */}
               <div className="absolute top-6 right-6 flex flex-col gap-2 z-10">
-                <div className="px-3 py-1.5 bg-black/60 backdrop-blur-xl rounded-lg border border-white/10 text-[10px] font-mono text-white/70 shadow-2xl flex items-center gap-3">
-                  <span className="opacity-40 uppercase tracking-tighter">Zoom</span>
-                  <span className="text-amber-500">{(zoom * 100).toFixed(0)}%</span>
+                <div className="px-3 py-1.5 bg-white/90 backdrop-blur-md rounded-lg border border-slate-200 text-[10px] font-mono text-slate-600 shadow-md flex items-center gap-2">
+                  <span className="opacity-60 uppercase tracking-tighter mr-1">Zoom</span>
+                  <button 
+                    onClick={() => setZoom(prev => Math.max(5.0, prev / 1.15))}
+                    disabled={zoom <= 5.001}
+                    className="p-1 hover:bg-slate-100 rounded disabled:opacity-35 disabled:cursor-not-allowed transition-colors text-slate-600 flex items-center justify-center border border-slate-200"
+                    title="Zoom Out"
+                  >
+                    <Minus className="w-3 h-3" />
+                  </button>
+                  <span className="text-blue-600 font-bold min-w-[36px] text-center">{Math.max(0, Math.round(((zoom / 5.0) - 1.0) * 100))}%</span>
+                  <button 
+                    onClick={() => setZoom(prev => Math.min(40.0, prev * 1.15))}
+                    disabled={zoom >= 39.99}
+                    className="p-1 hover:bg-slate-100 rounded disabled:opacity-35 disabled:cursor-not-allowed transition-colors text-slate-600 flex items-center justify-center border border-slate-200"
+                    title="Zoom In"
+                  >
+                    <Plus className="w-3 h-3" />
+                  </button>
                 </div>
               </div>
 
               <div className="absolute bottom-6 left-6 z-10 flex gap-4">
-                <div className="px-3 py-1.5 bg-amber-500/10 backdrop-blur-xl rounded-lg border border-amber-500/20 text-[9px] font-mono text-amber-500/80 shadow-2xl flex flex-col">
-                  <span className="text-[7px] uppercase tracking-widest opacity-50 mb-0.5">Ring Assembly Dimension</span>
+                <div className="px-3 py-1.5 bg-blue-50/50 backdrop-blur-md rounded-lg border border-blue-100 text-[9px] font-mono text-blue-850 shadow-sm flex flex-col">
+                  <span className="text-[7px] uppercase tracking-widest text-slate-500 mb-0.5">Ring Assembly Dimension</span>
                   {(() => {
                     const r = getRadiusFromTeeth(params.ringTeeth) * (params.scale || 1.0);
                     const modMax = params.ringShape === 'custom' ? Math.max(...(params.customRingPoints || [1.0])) : (1 + (params.ringIntensity || 0) * 0.15);
                     const margin = 30 * (params.scale || 1.0);
                     const dim = (r * modMax + margin) * 2;
-                    return `${dim.toFixed(1)}mm × ${dim.toFixed(1)}mm (${params.ringTeeth}T)`;
+                    return <span className="text-slate-800 font-bold">{dim.toFixed(1)}mm × {dim.toFixed(1)}mm ({params.ringTeeth}T)</span>;
                   })()}
                 </div>
-                <div className="px-3 py-1.5 bg-amber-500/10 backdrop-blur-xl rounded-lg border border-amber-500/20 text-[9px] font-mono text-amber-500/80 shadow-2xl flex flex-col">
-                  <span className="text-[7px] uppercase tracking-widest opacity-50 mb-0.5">Rolling Gear Diameter</span>
+                <div className="px-3 py-1.5 bg-blue-50/50 backdrop-blur-md rounded-lg border border-blue-100 text-[9px] font-mono text-blue-850 shadow-sm flex flex-col">
+                  <span className="text-[7px] uppercase tracking-widest text-slate-500 mb-0.5">Rolling Gear Diameter</span>
                   {(() => {
                     const teeth = params.isMultiStage ? params.stageTwoTeeth : params.gearTeeth;
                     const diameter = teeth * 6 / Math.PI * (params.scale || 1.0);
-                    return `${diameter.toFixed(1)}mm Ø (${teeth}T)`;
+                    return <span className="text-slate-800 font-bold">{diameter.toFixed(1)}mm Ø ({teeth}T)</span>;
                   })()}
                 </div>
               </div>
@@ -1636,7 +2200,7 @@ export default function App() {
                         <path 
                           d={memo.externalRing} 
                           fill="none" 
-                          stroke={isActive ? "rgba(255,255,255,0.4)" : "rgba(255,255,255,0.1)"} 
+                          stroke={isActive ? "rgba(15, 23, 42, 0.45)" : "rgba(15, 23, 42, 0.15)"} 
                           strokeWidth="1.0"
                         />
                       )}
@@ -1645,7 +2209,7 @@ export default function App() {
                         <path 
                           d={memo.guideShape} 
                           fill="none" 
-                          stroke={isActive ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.05)"} 
+                          stroke={isActive ? "rgba(15, 23, 42, 0.25)" : "rgba(15, 23, 42, 0.08)"} 
                           strokeWidth="0.5"
                           strokeDasharray="2 2"
                         />
@@ -1653,8 +2217,8 @@ export default function App() {
                       
                       <path 
                         d={memo.ringGear} 
-                        fill={isActive ? "rgba(255,255,255,0.05)" : "transparent"} 
-                        stroke={isActive ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.2)"} 
+                        fill={isActive ? "rgba(15, 23, 42, 0.03)" : "transparent"} 
+                        stroke={isActive ? "rgba(15, 23, 42, 0.65)" : "rgba(15, 23, 42, 0.22)"} 
                         strokeWidth="0.3"
                       />
                     </g>
@@ -1663,45 +2227,53 @@ export default function App() {
 
                 {/* Subtle Drawing Trace */}
                 {layersPathStrings.map((layerPaths, lIdx) => (
-                  layers[lIdx].visible && layerPaths.map((pathStr, pIdx) => (
-                    <path 
-                      key={`trace-${lIdx}-${pIdx}-${refreshKey}`}
-                      d={pathStr}
-                      fill="none"
-                      stroke={layers[lIdx].color}
-                      strokeWidth={activeLayerIndex === lIdx ? "0.6" : "0.3"}
-                      opacity={activeLayerIndex === lIdx ? "1" : "0.4"}
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="transition-all duration-300"
-                    />
-                  ))
+                  layers[lIdx].visible && layerPaths.map((pathStr, pIdx) => {
+                    if (layers[lIdx].params.hiddenHoles?.[pIdx]) return null;
+                    return (
+                      <path 
+                        key={`trace-${lIdx}-${pIdx}-${refreshKey}`}
+                        d={pathStr}
+                        fill="none"
+                        stroke={layers[lIdx].color}
+                        strokeWidth={activeLayerIndex === lIdx ? "0.6" : "0.3"}
+                        opacity={activeLayerIndex === lIdx ? "1" : "0.4"}
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="transition-all duration-300"
+                      />
+                    );
+                  })
                 ))}
 
                 {/* Gear Hardware Rendering */}
-                {(() => {
-                  const gearSystem = getGearSystemState(params, animationTheta);
+                {layers.map((layer, lIdx) => {
+                  if (!layer.visible) return null;
+                  const isActive = lIdx === activeLayerIndex;
+                  const gearSystem = getGearSystemState(layer.params, animationTheta);
                   const { gear1, gear2 } = gearSystem;
 
                   const g1_rot = gear1.rotation * (180 / Math.PI);
+                  const baseOpacity = isActive ? 1.0 : 0.55;
+                  const opacityMult = dimGears ? 0.3 * baseOpacity : baseOpacity;
 
                   return (
                     <g 
+                      key={`gear-hardware-${layer.id}`}
                       transform={`translate(${gear1.center.x}, ${gear1.center.y}) rotate(${g1_rot})`}
-                      opacity={dimGears ? 0.3 : 1.0}
+                      opacity={opacityMult}
                     >
                       {/* Stage 1 Gear */}
                       <g filter="url(#glow)">
                         <path 
-                          d={memoizedLayerPaths[activeLayerIndex]?.gear1Path} 
+                          d={memoizedLayerPaths[lIdx]?.gear1Path} 
                           fill="rgba(245,158,11,0.15)" 
                           stroke="#f59e0b" 
                           strokeWidth="0.4"
                         />
-                        {params.isMultiStage && (
-                          <g transform={`translate(${params.railOffset}, 0)`}>
+                        {layer.params.isMultiStage && (
+                          <g transform={`translate(${layer.params.railOffset}, 0)`}>
                             <path 
-                              d={memoizedLayerPaths[activeLayerIndex]?.stage2Paths?.internal} 
+                              d={memoizedLayerPaths[lIdx]?.stage2Paths?.internal} 
                               fill="none" 
                               stroke="#f59e0b" 
                               strokeWidth="0.2"
@@ -1727,38 +2299,44 @@ export default function App() {
                         return (
                           <g transform={`translate(${local_g2_x}, ${local_g2_y}) rotate(${g2_rot_rel})`}>
                             <path 
-                              d={memoizedLayerPaths[activeLayerIndex]?.stage2Paths?.gear2} 
+                              d={memoizedLayerPaths[lIdx]?.stage2Paths?.gear2} 
                               fill="rgba(59,130,246,0.3)" 
                               stroke="#3b82f6" 
                               strokeWidth="0.4"
                             />
-                            {params.holeOffsets.map((offset, idx) => (
-                              <circle 
-                                key={idx}
-                                cx={r2 * (offset/100)} 
-                                cy="0" 
-                                r="1.5" 
-                                fill="#fff" 
-                                opacity="0.6"
-                              />
-                            ))}
+                            {layer.params.holeOffsets.map((offset, idx) => {
+                              if (layer.params.hiddenHoles?.[idx]) return null;
+                              return (
+                                <circle 
+                                  key={idx}
+                                  cx={r2 * (offset/100)} 
+                                  cy="0" 
+                                  r="1.5" 
+                                  fill="#fff" 
+                                  opacity="0.6"
+                                />
+                              );
+                            })}
                           </g>
                         );
                       })() : (
-                        params.holeOffsets.map((offset, idx) => (
-                          <circle 
-                            key={idx}
-                            cx={gear1.radius * (offset/100)} 
-                            cy="0" 
-                            r="1.5" 
-                            fill="#fff" 
-                            opacity="0.6"
-                          />
-                        ))
+                        layer.params.holeOffsets.map((offset, idx) => {
+                          if (layer.params.hiddenHoles?.[idx]) return null;
+                          return (
+                            <circle 
+                              key={idx}
+                              cx={gear1.radius * (offset/100)} 
+                              cy="0" 
+                              r="1.5" 
+                              fill="#fff" 
+                              opacity="0.6"
+                            />
+                          );
+                        })
                       )}
                     </g>
                   );
-                })()}
+                })}
 
               </svg>
             </div>
@@ -1786,38 +2364,38 @@ export default function App() {
               initial={{ scale: 0.9, y: 20, opacity: 0 }}
               animate={{ scale: 1, y: 0, opacity: 1 }}
               exit={{ scale: 0.9, y: 20, opacity: 0 }}
-              className="relative w-full max-w-md bg-slate-900 border border-amber-500/30 rounded-2xl shadow-2xl overflow-hidden p-8"
+              className="relative w-full max-w-md bg-white border border-slate-300 rounded-2xl shadow-2xl overflow-hidden p-8"
             >
               <div className="flex items-center gap-4 mb-6">
-                <div className="w-12 h-12 rounded-full bg-amber-500/20 flex items-center justify-center">
-                  <AlertTriangle className="w-6 h-6 text-amber-500" />
+                <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center">
+                  <AlertTriangle className="w-6 h-6 text-red-500" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-white tracking-tight">Large Print Detected</h3>
-                  <p className="text-slate-400 text-xs uppercase tracking-widest mt-1">Bed Conflict Clearance</p>
+                  <h3 className="text-xl font-bold text-slate-900 tracking-tight">Large Print Detected</h3>
+                  <p className="text-slate-550 text-xs uppercase tracking-widest mt-1">Bed Conflict Clearance</p>
                 </div>
               </div>
 
               <div className="space-y-4 mb-8">
-                <div className="p-4 bg-white/5 rounded-xl border border-white/5 space-y-3">
+                <div className="p-4 bg-slate-50 rounded-xl border border-slate-200/80 space-y-3">
                   <div className="flex justify-between items-center">
                     <span className="text-slate-500 text-[10px] uppercase font-mono">Current Assembly Width</span>
-                    <span className="text-white font-mono text-lg">{currentSize.toFixed(1)}mm</span>
+                    <span className="text-slate-900 font-bold font-mono text-lg">{currentSize.toFixed(1)}mm</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-slate-500 text-[10px] uppercase font-mono">Your Bed Capacity</span>
-                    <span className="text-amber-500 font-mono text-lg">{bedSize}mm</span>
+                    <span className="text-red-650 font-bold font-mono text-lg">{bedSize}mm</span>
                   </div>
-                  <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
+                  <div className="h-2 w-full bg-slate-200 rounded-full overflow-hidden">
                     <div 
-                      className="h-full bg-red-500" 
+                      className="h-full bg-red-500 animate-pulse" 
                       style={{ width: `${Math.min(100, (currentSize / bedSize) * 100)}%` }}
                     />
                   </div>
                 </div>
-                <p className="text-slate-400 text-xs leading-relaxed">
+                <p className="text-slate-600 text-xs leading-relaxed">
                   The design is larger than your printer bed. We recommend scaling down to ensure a successful print. 
-                  <span className="text-amber-500"> Scaling will update the teeth count and real-time preview.</span>
+                  <span className="text-blue-600 font-semibold"> Scaling will update the teeth count and real-time preview.</span>
                 </p>
               </div>
 
@@ -1826,20 +2404,20 @@ export default function App() {
                   onClick={() => {
                     handleFitToBed();
                   }}
-                  className="w-full py-3 bg-amber-500 text-black font-bold text-sm uppercase tracking-widest rounded-lg hover:bg-amber-400 transition-all flex items-center justify-center gap-2"
+                  className="w-full py-3 bg-blue-600 text-white font-bold text-sm uppercase tracking-widest rounded-lg hover:bg-blue-700 transition-all flex items-center justify-center gap-2 shadow-md shadow-blue-500/10"
                 >
                   <Maximize2 className="w-4 h-4" /> Scale to Fit Bed
                 </button>
                 <div className="flex gap-2">
                   <button 
                     onClick={performSTLExport}
-                    className="flex-1 py-3 bg-white/5 text-slate-400 font-bold text-xs uppercase tracking-widest rounded-lg hover:bg-white/10 transition-all border border-white/10"
+                    className="flex-1 py-3 bg-slate-50 text-slate-700 font-bold text-xs uppercase tracking-widest rounded-lg hover:bg-slate-100 transition-all border border-slate-200"
                   >
                     Export Anyway
                   </button>
                   <button 
                     onClick={() => setShowBedWarning(false)}
-                    className="flex-1 py-3 text-slate-500 font-bold text-xs uppercase tracking-widest rounded-lg hover:text-white transition-all"
+                    className="flex-1 py-3 text-slate-500 font-bold text-xs uppercase tracking-widest rounded-lg hover:text-slate-800 hover:bg-slate-50 transition-all"
                   >
                     Cancel
                   </button>

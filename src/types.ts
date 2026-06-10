@@ -2,6 +2,7 @@ export interface SpiroParams {
   ringTeeth: number;
   gearTeeth: number;
   holeOffsets: number[]; // Array of percentages from gear center
+  hiddenHoles?: boolean[]; // Array of visibilities for hole traces
   rotation: number;
   resolution: number;
   type: 'hypotrochoid' | 'epitrochoid';
@@ -19,6 +20,8 @@ export interface SpiroParams {
   offsetX?: number;
   offsetY?: number;
   scale?: number;
+  hasExternalTeeth?: boolean;
+  externalTeeth?: number;
 }
 
 export interface GearPart {

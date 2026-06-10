@@ -12,7 +12,7 @@
 
 body {
   margin: 0;
-  background-color: #0a0a0b;
+  background-color: #f8fafc;
 }
 
 /* Custom technical scrollbar */
@@ -22,14 +22,14 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #0a0a0b;
+  background: #f8fafc;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #f59e0b20;
+  background: #3b82f620;
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #f59e0b50;
+  background: #3b82f650;
 }

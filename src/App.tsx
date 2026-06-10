@@ -679,7 +679,7 @@ export default function App() {
     const factor = 1.1;
     setZoom(prev => {
       const next = isZoomIn ? prev * factor : prev / factor;
-      return Math.min(Math.max(5.0, next), 40.0);
+      return Math.min(Math.max(1.25, next), 40.0);
     });
   };
 
@@ -2101,14 +2101,19 @@ export default function App() {
                 <div className="px-3 py-1.5 bg-white/90 backdrop-blur-md rounded-lg border border-slate-200 text-[10px] font-mono text-slate-600 shadow-md flex items-center gap-2">
                   <span className="opacity-60 uppercase tracking-tighter mr-1">Zoom</span>
                   <button 
-                    onClick={() => setZoom(prev => Math.max(5.0, prev / 1.15))}
-                    disabled={zoom <= 5.001}
+                    onClick={() => setZoom(prev => Math.max(1.25, prev / 1.15))}
+                    disabled={zoom <= 1.251}
                     className="p-1 hover:bg-slate-100 rounded disabled:opacity-35 disabled:cursor-not-allowed transition-colors text-slate-600 flex items-center justify-center border border-slate-200"
                     title="Zoom Out"
                   >
                     <Minus className="w-3 h-3" />
                   </button>
-                  <span className="text-blue-600 font-bold min-w-[36px] text-center">{Math.max(0, Math.round(((zoom / 5.0) - 1.0) * 100))}%</span>
+                  <span className="text-blue-600 font-bold min-w-[36px] text-center">
+                    {zoom >= 5.0 
+                      ? `${Math.round(((zoom / 5.0) - 1.0) * 100)}%` 
+                      : `${Math.round(((zoom - 5.0) / 3.75) * 300)}%`
+                    }
+                  </span>
                   <button 
                     onClick={() => setZoom(prev => Math.min(40.0, prev * 1.15))}
                     disabled={zoom >= 39.99}

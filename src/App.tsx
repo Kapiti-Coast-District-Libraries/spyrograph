@@ -27,7 +27,10 @@ import {
   ChevronUp,
   Sliders,
   Plus,
-  Minus
+  Minus,
+  ExternalLink,
+  Copy,
+  Check
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { SpiroParams } from './types';
@@ -787,6 +790,11 @@ export default function App() {
   }, [params.ringTeeth, params.gearTeeth]);
 
   const [showBedWarning, setShowBedWarning] = useState(false);
+  const [showLaserModal, setShowLaserModal] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [submitterName, setSubmitterName] = useState(() => localStorage.getItem('spiroforge_sub_name') || '');
+  const [submitterEmail, setSubmitterEmail] = useState(() => localStorage.getItem('spiroforge_sub_email') || '');
+  const [submitterNotes, setSubmitterNotes] = useState(() => localStorage.getItem('spiroforge_sub_notes') || '');
   const [showPrinterBed, setShowPrinterBed] = useState(false);
   const [currentSize, setCurrentSize] = useState(0);
   const [bedSize, setBedSize] = useState(220); // Default common printer bed 220mm
@@ -1417,6 +1425,15 @@ export default function App() {
             </div>
 
             <button 
+              onClick={() => {
+                setShowLaserModal(true);
+              }}
+              className="px-4 py-2.5 bg-amber-500 text-slate-900 font-bold text-[10px] uppercase tracking-widest hover:bg-amber-600 transition-all hover:scale-[0.98] active:scale-95 shadow-lg shadow-amber-500/20 flex gap-2 items-center border border-amber-600/10"
+              title="Load files directly into Kapiti Makerspace Laser Cutter website"
+            >
+              <ExternalLink className="w-3.5 h-3.5 text-slate-900/80" /> Send to Laser Web
+            </button>
+            <button 
               onClick={() => downloadSvg('parts')}
               className="px-4 py-2.5 bg-blue-600 text-white font-bold text-[10px] uppercase tracking-widest hover:bg-blue-700 transition-all hover:scale-[0.98] active:scale-95 shadow-lg shadow-blue-500/20 flex gap-2 items-center"
             >
@@ -1721,8 +1738,8 @@ export default function App() {
                   </button>
                 </div>
                 <div className="flex flex-col gap-2">
-                  <div className="grid grid-cols-2 gap-2">
-                    {(['circle', 'oval', 'distorted', 'custom'] as const).map(shape => (
+                  <div className="grid grid-cols-3 gap-2">
+                    {(['circle', 'oval', 'custom'] as const).map(shape => (
                       <button 
                         key={shape}
                         onClick={() => {
@@ -2427,6 +2444,200 @@ export default function App() {
                     Cancel
                   </button>
                 </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {showLaserModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowLaserModal(false)}
+              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            />
+            <motion.div 
+              initial={{ scale: 0.9, y: 20, opacity: 0 }}
+              animate={{ scale: 1, y: 0, opacity: 1 }}
+              exit={{ scale: 0.9, y: 20, opacity: 0 }}
+              className="relative w-full max-w-lg bg-white border border-slate-300 rounded-2xl shadow-2xl overflow-hidden p-8 flex flex-col max-h-[85vh]"
+            >
+              <div className="flex items-center gap-4 mb-5 shrink-0">
+                <div className="w-12 h-12 rounded-full bg-amber-50 flex items-center justify-center">
+                  <ExternalLink className="w-6 h-6 text-amber-500" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-slate-900 tracking-tight">Laser Driver Integration</h3>
+                  <p className="text-amber-600 text-[9px] font-bold uppercase tracking-widest mt-0.5">Kāpiti Libraries Makerspace</p>
+                </div>
+              </div>
+
+              <div className="space-y-4 mb-6 overflow-y-auto pr-1">
+                <p className="text-slate-600 text-xs leading-relaxed">
+                  You can direct-load the compiled SVG cutting path layout straight into the physical laser control software:
+                </p>
+
+                <div className="p-4 bg-slate-50 rounded-xl border border-slate-200/80 space-y-3">
+                  <div className="text-[10px] font-semibold text-slate-800 uppercase tracking-wider font-sans">Active Target Website:</div>
+                  <div className="font-mono text-xs text-blue-600 truncate bg-white px-3 py-2 rounded-lg border border-slate-200 shadow-sm flex justify-between items-center">
+                    <span>https://kapiti-makerspace-laser-driver.vercel.app/</span>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="text-[10px] font-semibold text-slate-800 uppercase tracking-wider">Option 1: Direct Autoload & Staff Submission (Recommended)</div>
+                  <p className="text-slate-500 text-[11px] leading-normal">
+                    This launches the driver in a new tab and safely broadcasts the active vector cut layer with any custom submission details.
+                  </p>
+
+                  <div className="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-200/80 my-3">
+                    <div className="text-[10px] font-bold text-slate-850 uppercase tracking-wider mb-1">Staff Submission Details (Optional)</div>
+                    
+                    <div className="grid grid-cols-2 gap-2.5">
+                      <div className="space-y-1">
+                        <label className="text-[8px] font-bold uppercase tracking-wider text-slate-500 block">Your Name</label>
+                        <input 
+                          type="text" 
+                          value={submitterName}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setSubmitterName(val);
+                            localStorage.setItem('spiroforge_sub_name', val);
+                          }}
+                          placeholder="Kāpiti Maker"
+                          className="w-full text-[11px] px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder:text-slate-400 font-sans"
+                        />
+                      </div>
+                      
+                      <div className="space-y-1">
+                        <label className="text-[8px] font-bold uppercase tracking-wider text-slate-500 block">Your Email</label>
+                        <input 
+                          type="email" 
+                          value={submitterEmail}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setSubmitterEmail(val);
+                            localStorage.setItem('spiroforge_sub_email', val);
+                          }}
+                          placeholder="maker@kapiti.org"
+                          className="w-full text-[11px] px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder:text-slate-400 font-sans"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[8px] font-bold uppercase tracking-wider text-slate-500 block">Instructions / Special Notes</label>
+                      <textarea
+                        value={submitterNotes}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setSubmitterNotes(val);
+                          localStorage.setItem('spiroforge_sub_notes', val);
+                        }}
+                        placeholder="e.g., Cut outer contours using 3mm MDF..."
+                        rows={2}
+                        className="w-full text-[11px] px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder:text-slate-400 font-sans resize-none"
+                      />
+                    </div>
+                  </div>
+
+                  <button 
+                    onClick={() => {
+                      const win = window.open('https://kapiti-makerspace-laser-driver.vercel.app/', '_blank');
+                      if (win) {
+                        const svgParts = generatePartsSvg();
+                        const payload = {
+                          type: 'kapiti-laser-import',
+                          action: 'load-svg',
+                          svg: svgParts,
+                          filename: 'spiroforge-parts.svg',
+                          fileName: 'spiroforge-parts.svg',
+                          senderName: submitterName || 'SpiroForge User',
+                          senderEmail: submitterEmail || '',
+                          notes: submitterNotes || '',
+                          svgString: svgParts,
+                          data: svgParts
+                        };
+                        
+                        // Send the payload repeatedly as the target app starts up and mounts its listeners
+                        let attempts = 0;
+                        const interval = setInterval(() => {
+                          win.postMessage(payload, 'https://kapiti-makerspace-laser-driver.vercel.app');
+                          attempts++;
+                          if (attempts >= 10) {
+                            clearInterval(interval);
+                          }
+                        }, 600);
+                      } else {
+                        alert('Popup blocked. Please check your browser’s pop-up blocker or click again after enabling popups.');
+                      }
+                    }}
+                    className="w-full py-2.5 bg-amber-500 text-slate-900 hover:bg-amber-600 font-extrabold text-xs uppercase tracking-widest rounded-lg transition-all flex items-center justify-center gap-2 shadow-md shadow-amber-500/10 hover:scale-[0.99]"
+                  >
+                    <ExternalLink className="w-4 h-4" /> Send Layout to Laser Staff
+                  </button>
+                </div>
+
+                <div className="pt-2 border-t border-slate-100">
+                  <div className="text-[10px] font-semibold text-slate-800 uppercase tracking-wider mb-2">Option 2: Safe Copy Fallback</div>
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={() => {
+                        const svgParts = generatePartsSvg();
+                        navigator.clipboard.writeText(svgParts);
+                        setCopied(true);
+                        setTimeout(() => setCopied(false), 2000);
+                      }}
+                      className="flex-1 py-2.5 bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold text-xs uppercase tracking-widest rounded-lg transition-all border border-slate-200 flex items-center justify-center gap-1.5"
+                    >
+                      {copied ? (
+                        <>
+                          <Check className="w-3.5 h-3.5 text-emerald-600" /> Copied!
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3.5 h-3.5" /> Copy SVG Data
+                        </>
+                      )}
+                    </button>
+                    <button
+                      onClick={() => {
+                        const targetUrl = 'https://kapiti-makerspace-laser-driver.vercel.app/';
+                        window.open(targetUrl, '_blank');
+                      }}
+                      className="flex-1 py-2.5 text-slate-600 font-bold hover:text-slate-800 hover:bg-slate-50 transition-all font-mono text-[10px] rounded-lg border border-transparent hover:border-slate-200 uppercase"
+                    >
+                      Open Target site only
+                    </button>
+                  </div>
+                </div>
+
+                <div className="pt-3 border-t border-slate-100">
+                  <span className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-widest block mb-1.5">For Developers:</span>
+                  <div className="p-3 bg-slate-900 rounded-lg text-[10px] font-mono text-slate-300 leading-normal overflow-x-auto space-y-1.5">
+                    <p className="text-slate-400">// Add this handler inside your Vercel laser driver code:</p>
+                    <pre className="text-amber-400">
+{`window.addEventListener('message', (event) => {
+  if (event.data?.type === 'kapiti-laser-import') {
+    const rawSvgText = event.data.svg;
+    // Call your target laser cut importer function here!
+    console.log("Loading SVG from SpiroForge...", rawSvgText);
+  }
+});`}
+                    </pre>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-4 border-t border-slate-100 shrink-0">
+                <button 
+                  onClick={() => setShowLaserModal(false)}
+                  className="px-5 py-2.5 bg-slate-900 text-white hover:bg-slate-800 font-bold text-xs uppercase tracking-widest rounded-lg transition-all shadow-md shadow-slate-900/10"
+                >
+                  Close Window
+                </button>
               </div>
             </motion.div>
           </div>

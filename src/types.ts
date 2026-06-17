@@ -8,7 +8,7 @@ export interface SpiroParams {
   type: 'hypotrochoid' | 'epitrochoid';
   gearShape: 'circle' | 'flower' | 'triangle' | 'square' | 'oval' | 'egg';
   shapeIntensity: number; // 0 to 2
-  ringShape: 'circle' | 'oval' | 'distorted' | 'custom';
+  ringShape: 'circle' | 'oval' | 'custom';
   ringIntensity: number; // 0 to 1
   ringTension: number; // 0 to 1
   customRingPoints?: number[]; // Array of modifiers (e.g. 1.0 = base radius)

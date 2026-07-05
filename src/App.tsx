@@ -34,7 +34,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { SpiroParams } from './types';
-import { generateSpiroPaths, generateGearSvgPath, generateShapeSvgPath, getRadiusFromTeeth, getSpiroPoint, getGearSystemState, getActualRingTeeth, getMinCurvatureRadius, PITCH, getGearPoints, getShapePoints } from './lib/spiroMath';
+import { generateSpiroPaths, generateGearSvgPath, generateShapeSvgPath, getRadiusFromTeeth, getSpiroPoint, getGearSystemState, getActualRingTeeth, getMinCurvatureRadius, PITCH, getGearPoints, getShapePoints, getSpiroTotalRotations, getRadiusModifier } from './lib/spiroMath';
 import { parseSvgPaths, samplePathToModifiers, getPathsBoundingBox } from './lib/svgUtils';
 import { generateSTL, generateRingSTL } from './lib/stlUtils';
 
@@ -278,10 +278,50 @@ export function getMaxScale(p: SpiroParams): number {
 export function getMaxHolePercent(p: SpiroParams): number {
   const activeGearTeeth = p.isMultiStage ? p.stageTwoTeeth : p.gearTeeth;
   const activeGearRadius = getRadiusFromTeeth(activeGearTeeth);
-  const rootRadius = activeGearRadius - 1.65; // Inside of teeth base (3.3 / 2)
-  // Deduct another 1.5mm to keep the 1.5mm-radius pen hole completely within the root boundary
-  const maxAllowed = Math.max(1.0, rootRadius - 1.5);
-  return Math.floor((maxAllowed / activeGearRadius) * 100);
+  
+  const gearShape = p.isMultiStage ? 'circle' : p.gearShape;
+  const shapeIntensity = p.isMultiStage ? 0 : p.shapeIntensity;
+  
+  // We want to find the maximum holeOffset % (from 0 to 100) such that 
+  // a hole of radius 1.5mm centered at activeGearRadius * (offset/100) 
+  // is fully contained within the root boundary of the gear.
+  // The root boundary at angle theta is r_root(theta) = activeGearRadius * getRadiusModifier(gearShape, theta, shapeIntensity) - 1.65.
+  
+  const samples = 120; // angular samples around the gear
+  
+  for (let pct = 100; pct >= 1; pct--) {
+    const d = activeGearRadius * (pct / 100);
+    let safe = true;
+    
+    for (let i = 0; i < samples; i++) {
+      const theta = (i / samples) * 2 * Math.PI;
+      const mod = getRadiusModifier(gearShape, theta, shapeIntensity, p.customRingPoints, p.ringTension);
+      const r_outer = activeGearRadius * mod;
+      const r_root = r_outer - 1.65; // base of the teeth
+      
+      // The point on the root boundary at angle theta:
+      const bx = r_root * Math.cos(theta);
+      const by = r_root * Math.sin(theta);
+      
+      // Distance from (d, 0) to (bx, by)
+      const dx = bx - d;
+      const dy = by;
+      const distSq = dx * dx + dy * dy;
+      
+      // The hole has radius 1.5mm. So we need the distance to be at least 1.5mm.
+      // Also, the hole center (d, 0) must be inside the boundary, which means d must be less than r_root.
+      if (distSq < 1.5 * 1.5 || d >= r_root) {
+        safe = false;
+        break;
+      }
+    }
+    
+    if (safe) {
+      return pct;
+    }
+  }
+  
+  return 1; // absolute minimum safeguard
 }
 
 export default function App() {
@@ -319,6 +359,45 @@ export default function App() {
   ]);
   const [activeLayerIndex, setActiveLayerIndex] = useState(0);
   const [showAdvanced, setShowAdvanced] = useState(false);
+
+  // Compute maximum ring dimension and pricing details for custom manufacturing
+  const { maxRingDim, hasLargeRing, extraGearsCount, sizeCost, gearsCost, totalCost } = useMemo(() => {
+    let maxDim = 0;
+    layers.forEach(layer => {
+      if (!layer.visible) return;
+      const p = layer.params;
+      const r = getRadiusFromTeeth(p.ringTeeth) * (p.scale || 1.0);
+      const modMax = p.ringShape === 'custom' 
+        ? (p.customRingPoints ? Math.max(...p.customRingPoints) : 1.0) 
+        : (1 + (p.ringIntensity || 0) * 0.15);
+      const margin = 30 * (p.scale || 1.0);
+      const dim = (r * modMax + margin) * 2;
+      if (dim > maxDim) {
+        maxDim = dim;
+      }
+    });
+
+    const hasLarge = maxDim > 200;
+    
+    // Total physical gears across visible layers
+    const totalGears = layers
+      .filter(l => l.visible)
+      .reduce((acc, layer) => acc + 1 + (layer.params.isMultiStage ? 1 : 0), 0);
+    const extraGears = Math.max(0, totalGears - 1);
+
+    const sCost = hasLarge ? (4.00 + (maxDim - 200) * 0.02) : 0;
+    const gCost = extraGears * 1.00;
+    const tCost = sCost + gCost;
+
+    return {
+      maxRingDim: maxDim,
+      hasLargeRing: hasLarge,
+      extraGearsCount: extraGears,
+      sizeCost: sCost,
+      gearsCost: gCost,
+      totalCost: tCost
+    };
+  }, [layers]);
 
   // Undo/Redo state
   const [history, setHistory] = useState<{ layers: Layer[], activeIndex: number }[]>([]);
@@ -397,6 +476,10 @@ export default function App() {
   const params = layers[activeLayerIndex]?.params || defaultParams;
   const maxHPercent = getMaxHolePercent(params);
 
+  const currentTotalRotations = useMemo(() => {
+    return getSpiroTotalRotations(params);
+  }, [params]);
+
   const minCurvature = useMemo(() => {
     return getMinCurvatureRadius(
       params.ringTeeth, 
@@ -420,11 +503,16 @@ export default function App() {
     const targetTeeth = Math.floor((2 * Math.PI * (minCurvature * 0.95)) / PITCH);
     // Use the ringTeeth of the active layer as a bound
     const safeTeeth = Math.max(8, Math.min(params.ringTeeth - 4, targetTeeth));
-    const newLayers = layers.map((layer, idx) => 
-      idx === activeLayerIndex 
-        ? { ...layer, params: { ...layer.params, gearTeeth: safeTeeth } }
-        : layer
-    );
+    const newLayers = layers.map((layer, idx) => {
+      if (idx !== activeLayerIndex) return layer;
+      
+      const mergedParams = { ...layer.params, gearTeeth: safeTeeth };
+      const maxHolePct = getMaxHolePercent(mergedParams);
+      if (mergedParams.holeOffsets) {
+        mergedParams.holeOffsets = mergedParams.holeOffsets.map(offset => Math.min(offset, maxHolePct));
+      }
+      return { ...layer, params: mergedParams };
+    });
     pushToHistory(newLayers, activeLayerIndex);
     setLayers(newLayers);
   };
@@ -483,8 +571,9 @@ export default function App() {
       const full = layersFullPaths[lIdx];
       if (animationTheta === 0) return layer.params.holeOffsets.map(() => []);
 
-      const { maxRotations, resolution, holeOffsets } = layer.params;
-      const maxTheta = maxRotations * 2 * Math.PI;
+      const { resolution, holeOffsets } = layer.params;
+      const totalRotations = getSpiroTotalRotations(layer.params);
+      const maxTheta = totalRotations * 2 * Math.PI;
       const pointLimit = layer.params.isMultiStage ? 30000 : 12000;
       const step = Math.max(0.04 / resolution, maxTheta / pointLimit);
 
@@ -522,7 +611,7 @@ export default function App() {
       setAnimationTheta(t => {
         const next = t + (baseSpeed * animationSpeed);
         // Loop or clamp? Let's cap it at the end of the calculated path
-        const maxT = params.maxRotations * Math.PI * 2;
+        const maxT = currentTotalRotations * Math.PI * 2;
         if (next >= maxT) return maxT;
         return next;
       });
@@ -531,7 +620,7 @@ export default function App() {
     
     frameId = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(frameId);
-  }, [isAnimating, animationSpeed, params.maxRotations]);
+  }, [isAnimating, animationSpeed, currentTotalRotations]);
 
   const updateParams = (newParamsPartial: Partial<SpiroParams>) => {
     const newLayers = layers.map((layer, idx) => {
@@ -2067,10 +2156,10 @@ export default function App() {
             <div className="flex-1 flex flex-col gap-2">
               <div className="flex justify-between text-[8px] uppercase tracking-widest font-mono text-slate-500">
                 <span>Timeline Progress</span>
-                <span className="text-blue-600 font-bold">{((animationTheta / (params.maxRotations * Math.PI * 2)) * 100).toFixed(0)}%</span>
+                <span className="text-blue-600 font-bold">{((animationTheta / (currentTotalRotations * Math.PI * 2)) * 100).toFixed(0)}%</span>
               </div>
               <input 
-                type="range" min="0" max={params.maxRotations * Math.PI * 2} step="0.01" 
+                type="range" min="0" max={currentTotalRotations * Math.PI * 2} step="0.01" 
                 value={animationTheta} 
                 onChange={(e) => {
                   setAnimationTheta(parseFloat(e.target.value));
@@ -2102,7 +2191,7 @@ export default function App() {
             </div>
             
             <div 
-              className={`flex-1 bg-white border border-slate-200/85 rounded-2xl flex items-center justify-center relative overflow-hidden cursor-grab shadow-sm ${isDragging ? 'cursor-grabbing' : ''}`}
+              className={`flex-1 bg-white rounded-2xl flex items-center justify-center relative overflow-hidden cursor-grab shadow-sm transition-all duration-300 ${isDragging ? 'cursor-grabbing' : ''} ${hasLargeRing ? 'border-4 border-red-500 shadow-[0_0_20px_rgba(239,68,68,0.25)]' : 'border border-slate-200/85'}`}
               onWheel={handleWheel}
               onMouseDown={handleMouseDown}
               onMouseMove={handleMouseMove}
@@ -2114,6 +2203,57 @@ export default function App() {
               <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'linear-gradient(rgba(59,130,246,0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(59,130,246,0.15) 1px, transparent 1px)', backgroundSize: '120px 120px' }}></div>
               
               {/* UI Overlays */}
+              <AnimatePresence>
+                {hasLargeRing && (
+                  <motion.div
+                    initial={{ opacity: 0, x: -20, scale: 0.95 }}
+                    animate={{ opacity: 1, x: 0, scale: 1 }}
+                    exit={{ opacity: 0, x: -20, scale: 0.95 }}
+                    className="absolute top-6 left-6 bg-white/95 backdrop-blur-md border border-red-200 rounded-xl p-4 shadow-xl max-w-[260px] z-20 flex flex-col gap-2 pointer-events-auto cursor-default text-left"
+                  >
+                    <div className="flex items-center gap-2 text-red-600">
+                      <AlertTriangle className="w-4 h-4 shrink-0" />
+                      <span className="text-[9px] uppercase tracking-wider font-extrabold font-sans">Oversized Ring Fee</span>
+                    </div>
+                    
+                    <div className="space-y-1.5 text-slate-700 font-sans text-[11px]">
+                      <p className="leading-tight text-slate-600">
+                        Rings over <span className="font-bold">200mm</span> are subject to extra production charges:
+                      </p>
+                      
+                      <div className="border-t border-slate-100 my-1 pt-1.5 space-y-1">
+                        <div className="flex justify-between">
+                          <span className="text-slate-500">Widest Point:</span>
+                          <span className="font-mono font-semibold">{maxRingDim.toFixed(1)}mm</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-500">Base surcharge:</span>
+                          <span className="font-mono font-semibold">$4.00</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-500">Size (2¢/mm):</span>
+                          <span className="font-mono font-semibold">${((maxRingDim - 200) * 0.02).toFixed(2)}</span>
+                        </div>
+                        {extraGearsCount > 0 && (
+                          <div className="flex justify-between text-blue-600 font-medium">
+                            <span>Extra gears ({extraGearsCount}x):</span>
+                            <span className="font-mono font-semibold">+${gearsCost.toFixed(2)}</span>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="border-t border-slate-200 pt-1.5 flex justify-between items-center">
+                        <span className="font-bold text-slate-800 uppercase tracking-wider text-[10px]">Total Cost:</span>
+                        <span className="font-mono font-bold text-red-600 text-sm">${totalCost.toFixed(2)}</span>
+                      </div>
+                    </div>
+                    <div className="text-[7px] text-slate-400 italic">
+                      Prices are estimates.
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               <div className="absolute top-6 right-6 flex flex-col gap-2 z-10">
                 <div className="px-3 py-1.5 bg-white/90 backdrop-blur-md rounded-lg border border-slate-200 text-[10px] font-mono text-slate-600 shadow-md flex items-center gap-2">
                   <span className="opacity-60 uppercase tracking-tighter mr-1">Zoom</span>

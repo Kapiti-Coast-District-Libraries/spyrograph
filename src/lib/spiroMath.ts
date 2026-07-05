@@ -142,34 +142,10 @@ export function getGearSystemState(params: SpiroParams, theta: number): { gear1:
   // 2. Find the rotation of the gear required to match that arc length
   const gearPhi = getThetaAtArcLength(arcLengthTraversed, r1Base, gearShape, shapeIntensity);
   
-  // 3. For the no-slip condition, the point at gearPhi in the gear's frame is touching the ring at theta.
+  // 3. For the no-slip condition, compute gear rotation relative to global coordinates first
   const pRing = getRingShapePoint(theta, R_base, ringShape, ringIntensity, params.customRingPoints, params.ringTension, offsetX, offsetY, scale);
   const normalRing = getNormalAtTheta(theta, R_base, ringShape, ringIntensity, params.customRingPoints, params.ringTension);
   
-  // The distance from the gear center to its contact point is r1(gearPhi)
-  const r1_contact = r1Base * getRadiusModifier(gearShape, gearPhi, shapeIntensity);
-  
-  // Placement: In irregular shapes, the gear center must be offset along the normal
-  // normalRing points INWARD for CCW shapes.
-  let g1_center;
-  if (effectiveType === 'hypotrochoid') {
-    // Gear inside: offset inward along normalRing
-    g1_center = {
-      x: pRing.x + normalRing.x * r1_contact,
-      y: pRing.y + normalRing.y * r1_contact
-    };
-  } else {
-    // Gear outside: offset outward (opposite of normalRing)
-    g1_center = {
-      x: pRing.x - normalRing.x * r1_contact,
-      y: pRing.y - normalRing.y * r1_contact
-    };
-  }
-
-  // 4. Compute gear rotation relative to global coordinates
-  // The vector from gear center to contact point in global frame is:
-  // Hypotrochoid: pRing - g1_center = -normalRing * r1_contact
-  // Epitrochoid: pRing - g1_center = +normalRing * r1_contact
   const alpha = Math.atan2(normalRing.y, normalRing.x);
   let g1_rotation = 0;
   if (effectiveType === 'hypotrochoid') {
@@ -178,6 +154,55 @@ export function getGearSystemState(params: SpiroParams, theta: number): { gear1:
   } else {
     // angle of (pRing - g1_center) is alpha
     g1_rotation = alpha - gearPhi;
+  }
+
+  // 4. Compute correct physical gear center distance (d_center) to prevent any part of the gear from penetrating the ring.
+  // We sample 48 angles around the gear's perimeter to find the maximum required clearance.
+  let d_center = r1Base;
+  if (gearShape !== 'circle' && shapeIntensity > 0) {
+    let maxProj = -Infinity;
+    const samples = 48;
+    for (let i = 0; i < samples; i++) {
+      const phi = (i / samples) * 2 * Math.PI;
+      const r_phi = r1Base * getRadiusModifier(gearShape, phi, shapeIntensity);
+      
+      // Vector from gear center to this perimeter point in global coordinates
+      const angle_global = g1_rotation + phi;
+      const rx = r_phi * Math.cos(angle_global);
+      const ry = r_phi * Math.sin(angle_global);
+      
+      // Project onto normalRing
+      const proj = rx * normalRing.x + ry * normalRing.y;
+      
+      if (effectiveType === 'hypotrochoid') {
+        // Gear inside: ensure the gear boundary lies within the ring perimeter (max of -proj)
+        if (-proj > maxProj) {
+          maxProj = -proj;
+        }
+      } else {
+        // Gear outside: ensure the gear boundary lies outside the ring perimeter (max of proj)
+        if (proj > maxProj) {
+          maxProj = proj;
+        }
+      }
+    }
+    d_center = maxProj;
+  }
+
+  // 5. Place the gear center along the ring's normal using our physical non-penetrating distance
+  let g1_center;
+  if (effectiveType === 'hypotrochoid') {
+    // Gear inside: offset inward along normalRing
+    g1_center = {
+      x: pRing.x + normalRing.x * d_center,
+      y: pRing.y + normalRing.y * d_center
+    };
+  } else {
+    // Gear outside: offset outward (opposite of normalRing)
+    g1_center = {
+      x: pRing.x - normalRing.x * d_center,
+      y: pRing.y - normalRing.y * d_center
+    };
   }
 
   const state: { gear1: GearState; gear2?: GearState } = {
@@ -235,11 +260,10 @@ export function getSpiroPoint(params: SpiroParams, holeOffset: number, theta: nu
   };
 }
 
-function calculatePoints(params: SpiroParams, holeOffset: number): { x: number; y: number }[] {
+export function getSpiroTotalRotations(params: SpiroParams): number {
   const { 
     ringTeeth, 
     gearTeeth, 
-    resolution, 
     maxRotations = 40,
     isMultiStage = false,
   } = params;
@@ -248,8 +272,6 @@ function calculatePoints(params: SpiroParams, holeOffset: number): { x: number; 
   const R_base = getRadiusFromTeeth(effectiveRingTeeth);
   const ringMap = getArcLengthMap(R_base, params.ringShape, params.ringIntensity, params.customRingPoints, params.ringTension);
   const actualRingTeeth = Math.round(ringMap.totalLength * (params.scale || 1.0) / PITCH);
-
-  const points: { x: number; y: number }[] = [];
   
   const gcd = (a: number, b: number): number => b === 0 ? a : gcd(b, a % b);
   const lcm = (a: number, b: number): number => Math.abs(a * b) / gcd(a, b);
@@ -260,11 +282,22 @@ function calculatePoints(params: SpiroParams, holeOffset: number): { x: number; 
     autoRotations = lcm(effectiveRingTeeth, l12) / effectiveRingTeeth;
   }
   
-  const totalRotations = Math.min(autoRotations, maxRotations); 
+  return Math.min(autoRotations, maxRotations);
+}
+
+function calculatePoints(params: SpiroParams, holeOffset: number): { x: number; y: number }[] {
+  const { 
+    resolution, 
+    isMultiStage = false,
+  } = params;
+  
+  const totalRotations = getSpiroTotalRotations(params); 
   const maxTheta = totalRotations * 2 * Math.PI;
   const pointLimit = isMultiStage ? 30000 : 12000; 
   const step = Math.max(0.04 / resolution, maxTheta / pointLimit);
 
+  const points: { x: number; y: number }[] = [];
+  
   for (let theta = 0; theta <= maxTheta; theta += step) {
     const point = getSpiroPoint(params, holeOffset, theta);
     if (!isNaN(point.x) && !isNaN(point.y)) {

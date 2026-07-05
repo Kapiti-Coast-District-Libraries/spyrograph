@@ -299,18 +299,7 @@ export function getMaxHolePercent(p: SpiroParams): number {
       const r_outer = activeGearRadius * mod;
       const r_root = r_outer - 1.65; // base of the teeth
       
-      // The point on the root boundary at angle theta:
-      const bx = r_root * Math.cos(theta);
-      const by = r_root * Math.sin(theta);
-      
-      // Distance from (d, 0) to (bx, by)
-      const dx = bx - d;
-      const dy = by;
-      const distSq = dx * dx + dy * dy;
-      
-      // The hole has radius 1.5mm. So we need the distance to be at least 1.5mm.
-      // Also, the hole center (d, 0) must be inside the boundary, which means d must be less than r_root.
-      if (distSq < 1.5 * 1.5 || d >= r_root) {
+      if (d + 1.5 >= r_root) {
         safe = false;
         break;
       }
@@ -580,7 +569,7 @@ export default function App() {
       return full.paths.map((fullPath, pIdx) => {
         const targetIndex = Math.floor(animationTheta / step);
         const sliced = fullPath.slice(0, targetIndex + 1);
-        const currentPoint = getSpiroPoint(layer.params, holeOffsets[pIdx], animationTheta);
+        const currentPoint = getSpiroPoint(layer.params, holeOffsets[pIdx], animationTheta, pIdx);
         return [...sliced, currentPoint];
       });
     });
@@ -957,24 +946,30 @@ export default function App() {
       const gearPoints = getGearPoints(p.gearTeeth, false, p.gearShape, p.shapeIntensity, undefined, undefined, 0, 0, p.scale);
       const scaledGearRadius = getRadiusFromTeeth(p.gearTeeth) * (p.scale || 1.0);
       
-      const holes = p.isMultiStage ? [] : p.holeOffsets.map(offset => ({
-        x: scaledGearRadius * (offset / 100),
-        y: 0,
-        r: 1.5,
-        chamfer: 1.0
-      }));
+      const holes = p.isMultiStage ? [] : p.holeOffsets.map((offset, hIdx) => {
+        const holeAngle = hIdx * (30 * Math.PI / 180);
+        return {
+          x: scaledGearRadius * (offset / 100) * Math.cos(holeAngle),
+          y: scaledGearRadius * (offset / 100) * Math.sin(holeAngle),
+          r: 1.5,
+          chamfer: 1.0
+        };
+      });
 
       generateSTL([{ points: gearPoints, height: extrusionHeight, holes }], `${gearFileName}-gear`);
 
       if (p.isMultiStage) {
         const scaledGear2Radius = getRadiusFromTeeth(p.stageTwoTeeth) * (p.scale || 1.0);
         const stage2Points = getGearPoints(p.stageTwoTeeth, false, 'circle', 1.0, undefined, undefined, 0, 0, p.scale);
-        const stage2Holes = p.holeOffsets.map(offset => ({
-          x: scaledGear2Radius * (offset / 100),
-          y: 0,
-          r: 1.5,
-          chamfer: 1.0
-        }));
+        const stage2Holes = p.holeOffsets.map((offset, hIdx) => {
+          const holeAngle = hIdx * (30 * Math.PI / 180);
+          return {
+            x: scaledGear2Radius * (offset / 100) * Math.cos(holeAngle),
+            y: scaledGear2Radius * (offset / 100) * Math.sin(holeAngle),
+            r: 1.5,
+            chamfer: 1.0
+          };
+        });
         generateSTL([{ points: stage2Points, height: extrusionHeight, holes: stage2Holes }], `${gearFileName}-stage2`);
       }
     });
@@ -1395,9 +1390,11 @@ export default function App() {
         
         const holePaths = !item.isMultiStage && item.holeOffsets ? item.holeOffsets.map((offset, hIdx) => {
           if (item.hiddenHoles?.[hIdx]) return '';
-          const holeX = targetRadius * (offset / 100);
+          const holeAngle = hIdx * (30 * Math.PI / 180);
+          const holeX = targetRadius * (offset / 100) * Math.cos(holeAngle);
+          const holeY = targetRadius * (offset / 100) * Math.sin(holeAngle);
           const holeR = 1.6;
-          return `<path d="M ${holeX - holeR},0 a ${holeR},${holeR} 0 1,0 ${holeR * 2},0 a ${holeR},${holeR} 0 1,0 -${holeR * 2},0" fill="none" stroke="red" stroke-width="0.25" stroke-linecap="round" stroke-linejoin="round" />`;
+          return `<path d="M ${holeX - holeR},${holeY} a ${holeR},${holeR} 0 1,0 ${holeR * 2},0 a ${holeR},${holeR} 0 1,0 -${holeR * 2},0" fill="none" stroke="red" stroke-width="0.25" stroke-linecap="round" stroke-linejoin="round" />`;
         }).join('\n') : '';
 
         return `
@@ -1422,9 +1419,11 @@ export default function App() {
 
         const holePaths = item.holeOffsets ? item.holeOffsets.map((offset, hIdx) => {
           if (item.hiddenHoles?.[hIdx]) return '';
-          const holeX = targetRadius * (offset / 100);
+          const holeAngle = hIdx * (30 * Math.PI / 180);
+          const holeX = targetRadius * (offset / 100) * Math.cos(holeAngle);
+          const holeY = targetRadius * (offset / 100) * Math.sin(holeAngle);
           const holeR = 1.6;
-          return `<path d="M ${holeX - holeR},0 a ${holeR},${holeR} 0 1,0 ${holeR * 2},0 a ${holeR},${holeR} 0 1,0 -${holeR * 2},0" fill="none" stroke="red" stroke-width="0.25" stroke-linecap="round" stroke-linejoin="round" />`;
+          return `<path d="M ${holeX - holeR},${holeY} a ${holeR},${holeR} 0 1,0 ${holeR * 2},0 a ${holeR},${holeR} 0 1,0 -${holeR * 2},0" fill="none" stroke="red" stroke-width="0.25" stroke-linecap="round" stroke-linejoin="round" />`;
         }).join('\n') : '';
 
         return `
@@ -2468,11 +2467,14 @@ export default function App() {
                             />
                             {layer.params.holeOffsets.map((offset, idx) => {
                               if (layer.params.hiddenHoles?.[idx]) return null;
+                              const holeAngle = idx * (30 * Math.PI / 180);
+                              const hx = r2 * (offset / 100) * Math.cos(holeAngle);
+                              const hy = r2 * (offset / 100) * Math.sin(holeAngle);
                               return (
                                 <circle 
                                   key={idx}
-                                  cx={r2 * (offset/100)} 
-                                  cy="0" 
+                                  cx={hx} 
+                                  cy={hy} 
                                   r="1.5" 
                                   fill="#fff" 
                                   opacity="0.6"
@@ -2484,11 +2486,14 @@ export default function App() {
                       })() : (
                         layer.params.holeOffsets.map((offset, idx) => {
                           if (layer.params.hiddenHoles?.[idx]) return null;
+                          const holeAngle = idx * (30 * Math.PI / 180);
+                          const hx = gear1.radius * (offset / 100) * Math.cos(holeAngle);
+                          const hy = gear1.radius * (offset / 100) * Math.sin(holeAngle);
                           return (
                             <circle 
                               key={idx}
-                              cx={gear1.radius * (offset/100)} 
-                              cy="0" 
+                              cx={hx} 
+                              cy={hy} 
                               r="1.5" 
                               fill="#fff" 
                               opacity="0.6"

@@ -249,14 +249,15 @@ export function getGearSystemState(params: SpiroParams, theta: number): { gear1:
   return state;
 }
 
-export function getSpiroPoint(params: SpiroParams, holeOffset: number, theta: number): { x: number; y: number } {
+export function getSpiroPoint(params: SpiroParams, holeOffset: number, theta: number, holeIndex: number = 0): { x: number; y: number } {
   const state = getGearSystemState(params, theta);
   const activeGear = state.gear2 || state.gear1;
+  const holeAngle = holeIndex * (30 * Math.PI / 180);
   const d = activeGear.radius * (holeOffset / 100);
 
   return {
-    x: activeGear.center.x + d * Math.cos(activeGear.rotation),
-    y: activeGear.center.y + d * Math.sin(activeGear.rotation)
+    x: activeGear.center.x + d * Math.cos(activeGear.rotation + holeAngle),
+    y: activeGear.center.y + d * Math.sin(activeGear.rotation + holeAngle)
   };
 }
 
@@ -285,7 +286,7 @@ export function getSpiroTotalRotations(params: SpiroParams): number {
   return Math.min(autoRotations, maxRotations);
 }
 
-function calculatePoints(params: SpiroParams, holeOffset: number): { x: number; y: number }[] {
+function calculatePoints(params: SpiroParams, holeOffset: number, holeIndex: number): { x: number; y: number }[] {
   const { 
     resolution, 
     isMultiStage = false,
@@ -299,7 +300,7 @@ function calculatePoints(params: SpiroParams, holeOffset: number): { x: number; 
   const points: { x: number; y: number }[] = [];
   
   for (let theta = 0; theta <= maxTheta; theta += step) {
-    const point = getSpiroPoint(params, holeOffset, theta);
+    const point = getSpiroPoint(params, holeOffset, theta, holeIndex);
     if (!isNaN(point.x) && !isNaN(point.y)) {
       points.push(point);
     }
@@ -311,7 +312,7 @@ function calculatePoints(params: SpiroParams, holeOffset: number): { x: number; 
 
 
 export function generateSpiroPaths(params: SpiroParams): { x: number; y: number }[][] {
-  return params.holeOffsets.map(offset => calculatePoints(params, offset));
+  return params.holeOffsets.map((offset, idx) => calculatePoints(params, offset, idx));
 }
 
 function interpolateCustom(angle: number, points: number[], tension: number = 0.5): number {

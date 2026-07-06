@@ -2336,55 +2336,50 @@ export default function App() {
               <AnimatePresence>
                 {hasLargeRing && (
                   <motion.div
-                    initial={{ opacity: 0, x: -20, scale: 0.95 }}
-                    animate={{ opacity: 1, x: 0, scale: 1 }}
-                    exit={{ opacity: 0, x: -20, scale: 0.95 }}
-                    className="absolute top-6 left-6 bg-white/95 backdrop-blur-md border border-red-200 rounded-xl p-4 shadow-xl max-w-[260px] z-20 flex flex-col gap-2 pointer-events-auto cursor-default text-left"
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    className="absolute top-0 left-0 right-0 bg-red-50/95 backdrop-blur-md border-b border-red-200/80 p-3 px-6 shadow-md z-20 flex flex-col lg:flex-row lg:items-center justify-between gap-2 text-left pointer-events-auto cursor-default"
                   >
-                    <div className="flex items-center gap-2 text-red-600">
-                      <AlertTriangle className="w-4 h-4 shrink-0" />
-                      <span className="text-[9px] uppercase tracking-wider font-extrabold font-sans">Oversized Ring Fee</span>
+                    <div className="flex items-center gap-2">
+                      <AlertTriangle className="w-4 h-4 text-red-500 shrink-0" />
+                      <div>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="text-[10px] uppercase tracking-wider font-extrabold font-sans text-red-700">Oversized Ring Fee</span>
+                        </div>
+                      </div>
                     </div>
                     
-                    <div className="space-y-1.5 text-slate-700 font-sans text-[11px]">
-                      <p className="leading-tight text-slate-600">
-                        Rings over <span className="font-bold">200mm</span> are subject to extra production charges:
-                      </p>
-                      
-                      <div className="border-t border-slate-100 my-1 pt-1.5 space-y-1">
-                        <div className="flex justify-between">
-                          <span className="text-slate-500">Widest Point:</span>
-                          <span className="font-mono font-semibold">{maxRingDim.toFixed(1)}mm</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-slate-500">Base surcharge:</span>
-                          <span className="font-mono font-semibold">$4.00</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-slate-500">Size (2¢/mm):</span>
-                          <span className="font-mono font-semibold">${((maxRingDim - 200) * 0.02).toFixed(2)}</span>
-                        </div>
-                        {extraGearsCount > 0 && (
-                          <div className="flex justify-between text-blue-600 font-medium">
-                            <span>Extra gears ({extraGearsCount}x):</span>
+                    <div className="flex flex-wrap items-center gap-y-1 gap-x-4 text-slate-700 font-sans text-[11px]">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-slate-500 text-[10px] uppercase font-mono">Widest:</span>
+                        <span className="font-mono font-semibold">{maxRingDim.toFixed(1)}mm</span>
+                      </div>
+                      <div className="h-3 w-px bg-slate-200 hidden lg:block" />
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-slate-500 text-[10px] uppercase font-mono">Size (2¢/mm):</span>
+                        <span className="font-mono font-semibold">${((maxRingDim - 200) * 0.02).toFixed(2)}</span>
+                      </div>
+                      {extraGearsCount > 0 && (
+                        <>
+                          <div className="h-3 w-px bg-slate-200 hidden lg:block" />
+                          <div className="flex items-center gap-1.5 text-blue-600">
+                            <span className="text-blue-500 text-[10px] uppercase font-mono">Gears ({extraGearsCount}x):</span>
                             <span className="font-mono font-semibold">+${gearsCost.toFixed(2)}</span>
                           </div>
-                        )}
-                      </div>
-                      
-                      <div className="border-t border-slate-200 pt-1.5 flex justify-between items-center">
-                        <span className="font-bold text-slate-800 uppercase tracking-wider text-[10px]">Total Cost:</span>
+                        </>
+                      )}
+                      <div className="h-3 w-px bg-slate-300 hidden lg:block" />
+                      <div className="flex items-center gap-2 bg-red-100/60 px-2 py-0.5 rounded-md border border-red-200/50">
+                        <span className="font-bold text-slate-700 uppercase tracking-wider text-[9px]">Total Cost:</span>
                         <span className="font-mono font-bold text-red-600 text-sm">${totalCost.toFixed(2)}</span>
                       </div>
-                    </div>
-                    <div className="text-[7px] text-slate-400 italic">
-                      Prices are estimates.
                     </div>
                   </motion.div>
                 )}
               </AnimatePresence>
 
-              <div className="absolute top-6 right-6 flex flex-col gap-2 z-10">
+              <div className={`absolute ${hasLargeRing ? 'top-16 lg:top-20' : 'top-6'} right-6 flex flex-col gap-2 z-10 transition-all duration-300`}>
                 <div className="px-3 py-1.5 bg-white/90 backdrop-blur-md rounded-lg border border-slate-200 text-[10px] font-mono text-slate-600 shadow-md flex items-center gap-2">
                   <span className="opacity-60 uppercase tracking-tighter mr-1">Zoom</span>
                   <button 

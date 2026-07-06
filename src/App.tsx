@@ -2751,10 +2751,6 @@ export default function App() {
               </div>
 
               <div className="space-y-4 mb-6 overflow-y-auto pr-1">
-                <p className="text-slate-600 text-xs leading-relaxed">
-                  Enter your contact details and optional instructions below to load your active vector layout directly into the Kāpiti Makerspace Laser Controller.
-                </p>
-
                 <div className="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-200/80 my-2">
                   <div className="text-[10px] font-bold text-slate-800 uppercase tracking-wider mb-1">Staff Submission Details</div>
                   

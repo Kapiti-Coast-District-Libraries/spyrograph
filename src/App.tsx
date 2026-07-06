@@ -30,7 +30,8 @@ import {
   Minus,
   ExternalLink,
   Copy,
-  Check
+  Check,
+  Sparkles
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { SpiroParams } from './types';
@@ -327,7 +328,7 @@ export default function App() {
     ringIntensity: 1.0,
     ringTension: 0.5,
     customRingPoints: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
-    maxRotations: 30,
+    maxRotations: 200,
     isMultiStage: false,
     stageTwoTeeth: 12,
     stageOneInternalTeeth: 24,
@@ -746,6 +747,167 @@ export default function App() {
     pushToHistory(newLayers, 0);
     setLayers(newLayers);
     setActiveLayerIndex(0);
+  };
+
+  const handleRandomize = () => {
+    const numLayers = Math.random() > 0.65 ? 2 : 1;
+    const newLayers: Layer[] = [];
+    
+    // Choose common beautiful sizes for the base rings
+    const commonRingTeeth = [60, 72, 80, 84, 96, 105, 120, 140, 144, 150, 160, 180, 200];
+    const shapes: ('circle' | 'oval' | 'custom')[] = ['circle', 'oval', 'circle', 'circle', 'circle'];
+    const gearShapes: ('circle' | 'flower' | 'triangle' | 'square' | 'oval' | 'egg')[] = ['circle', 'flower', 'triangle', 'square', 'oval', 'egg'];
+    const flowTypes: ('hypotrochoid' | 'epitrochoid')[] = ['hypotrochoid', 'epitrochoid', 'hypotrochoid'];
+
+    const spacing = 40;
+    let currentXOffset = 0;
+
+    for (let i = 0; i < numLayers; i++) {
+      const ringShape = shapes[Math.floor(Math.random() * shapes.length)];
+      const ringTeeth = commonRingTeeth[Math.floor(Math.random() * commonRingTeeth.length)];
+      
+      const r_ring = getRadiusFromTeeth(ringTeeth);
+      const ringIntensity = ringShape !== 'circle' ? 0.2 + Math.random() * 0.6 : 1.0;
+      const ringTension = 0.3 + Math.random() * 0.5;
+      
+      let customRingPoints = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0];
+      if (ringShape === 'custom') {
+        customRingPoints = customRingPoints.map(() => 0.8 + Math.random() * 0.4);
+      }
+      
+      const modMax = ringShape === 'custom' 
+        ? Math.max(...customRingPoints) 
+        : (1 + (ringShape === 'circle' ? 0 : ringIntensity) * 0.15);
+      const margin = 30;
+      const outerRadius = (r_ring * modMax) + margin;
+      
+      if (i > 0) {
+        const prevLayer = newLayers[i - 1];
+        const prevParams = prevLayer.params;
+        const prevR = getRadiusFromTeeth(prevParams.ringTeeth);
+        const prevModMax = prevParams.ringShape === 'custom' 
+          ? Math.max(...(prevParams.customRingPoints || [1.0])) 
+          : (1 + (prevParams.ringShape === 'circle' ? 0 : prevParams.ringIntensity) * 0.15);
+        const prevOuterRadius = (prevR * prevModMax) + margin;
+        currentXOffset = (prevParams.offsetX || 0) + prevOuterRadius + outerRadius + spacing;
+      }
+
+      const minCurv = getMinCurvatureRadius(
+        ringTeeth, 
+        ringShape, 
+        ringIntensity, 
+        customRingPoints, 
+        ringTension,
+        1.0
+      );
+      const safeLimit = Math.floor((2 * Math.PI * (minCurv * 0.98)) / PITCH);
+      const maxPossibleTeeth = Math.max(8, Math.min(ringTeeth - 4, safeLimit));
+      
+      let gearTeeth = 24;
+      const candidates: number[] = [];
+      const getGcd = (a: number, b: number): number => {
+        let tempA = a;
+        let tempB = b;
+        while (tempB !== 0) {
+          const t = tempB;
+          tempB = tempA % tempB;
+          tempA = t;
+        }
+        return tempA;
+      };
+      for (let t = 12; t <= maxPossibleTeeth; t += 2) {
+        const divisor = getGcd(ringTeeth, t);
+        if (divisor > 1 && divisor < t) {
+          candidates.push(t);
+        }
+      }
+      if (candidates.length > 0) {
+        gearTeeth = candidates[Math.floor(Math.random() * candidates.length)];
+      } else {
+        gearTeeth = Math.floor(12 + Math.random() * (maxPossibleTeeth - 12));
+      }
+      if (gearTeeth < 8) gearTeeth = 8;
+      if (gearTeeth >= ringTeeth) gearTeeth = Math.max(8, ringTeeth - 4);
+
+      const type: 'hypotrochoid' | 'epitrochoid' = 'hypotrochoid';
+      const gearShape = gearShapes[Math.floor(Math.random() * gearShapes.length)];
+      const shapeIntensity = 0.2 + Math.random() * 1.0;
+      
+      const isMultiStage = Math.random() > 0.8;
+      let stageTwoTeeth = 12;
+      let stageOneInternalTeeth = 24;
+      let railOffset = 0;
+      if (isMultiStage) {
+        stageOneInternalTeeth = Math.max(16, Math.floor(gearTeeth / 2) * 2);
+        if (stageOneInternalTeeth >= gearTeeth) stageOneInternalTeeth = Math.max(8, gearTeeth - 6);
+        stageTwoTeeth = Math.max(8, Math.floor(stageOneInternalTeeth / 2));
+        railOffset = Number((Math.random() * 3).toFixed(1));
+      }
+
+      const numHoles = Math.floor(1 + Math.random() * 3);
+      const tempParams = {
+        ringTeeth,
+        gearTeeth,
+        holeOffsets: [50],
+        rotation: 0,
+        resolution: 1,
+        type,
+        gearShape,
+        shapeIntensity,
+        ringShape,
+        ringIntensity,
+        ringTension,
+        customRingPoints,
+        maxRotations: 30,
+        isMultiStage,
+        stageTwoTeeth,
+        stageOneInternalTeeth,
+        railOffset,
+        scale: 1.0
+      };
+      const maxHolePct = getMaxHolePercent(tempParams);
+      const holeOffsets: number[] = [];
+      const hiddenHoles: boolean[] = [];
+      
+      for (let h = 0; h < numHoles; h++) {
+        const fraction = (h + 1) / (numHoles + 1);
+        const offsetVal = Math.max(5, Math.floor(maxHolePct * (fraction + (Math.random() * 0.15 - 0.075))));
+        holeOffsets.push(offsetVal);
+        hiddenHoles.push(false);
+      }
+
+      const maxRotations = 200;
+
+      const p: SpiroParams = {
+        ...tempParams,
+        holeOffsets,
+        hiddenHoles,
+        maxRotations,
+        offsetX: currentXOffset,
+        offsetY: 0,
+        scale: 1.0
+      };
+
+      const maxAllowedScale = getMaxScale(p);
+      p.scale = Number(Math.min(1.2, maxAllowedScale * 0.85).toFixed(2));
+
+      newLayers.push({
+        id: `layer-rand-${Date.now()}-${i}`,
+        name: `Ring ${i + 1}`,
+        params: p,
+        color: LAYER_COLORS[i % LAYER_COLORS.length],
+        visible: true
+      });
+    }
+
+    pushToHistory(newLayers, 0);
+    setLayers(newLayers);
+    setActiveLayerIndex(0);
+    
+    if (newLayers[0]) {
+      setPan({ x: -newLayers[0].params.offsetX, y: -newLayers[0].params.offsetY || 0 });
+    }
+    setAnimationTheta(0);
   };
 
   const handleRefresh = () => {
@@ -1549,14 +1711,14 @@ export default function App() {
                   <Layers className="w-3.5 h-3.5" /> Ring Management
                 </h2>
               </div>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-3 gap-1.5">
                 <button 
                   onClick={() => addLayer()}
                   className="text-[9px] uppercase font-bold text-center text-blue-600 bg-blue-50 py-1.5 rounded border border-blue-200/80 hover:bg-blue-100 transition-colors"
                   id="add-ring-btn"
                   title="Create a new physical ring shifted to the right"
                 >
-                  + Add Ring
+                  + Ring
                 </button>
                 <button 
                   onClick={addRollingGear}
@@ -1564,7 +1726,15 @@ export default function App() {
                   id="add-gear-btn"
                   title="Add another rolling gear to the currently active ring"
                 >
-                  + Add Gear
+                  + Gear
+                </button>
+                <button 
+                  onClick={handleRandomize}
+                  className="text-[9px] uppercase font-bold text-center text-purple-600 bg-purple-50 py-1.5 rounded border border-purple-200/80 hover:bg-purple-100 transition-colors flex items-center justify-center gap-1 shadow-sm"
+                  id="randomize-btn"
+                  title="Generate a completely random beautiful design"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-purple-600" /> Random
                 </button>
               </div>
             </div>
@@ -1786,25 +1956,6 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Path Completion Slider */}
-              <div className="space-y-4">
-                <div className="flex justify-between text-[10px] uppercase tracking-wider">
-                  <label className="text-slate-500">Path Completion (Rotations)</label>
-                  <span className="text-slate-800 font-mono bg-slate-100 px-1.5 rounded">{params.maxRotations}</span>
-                </div>
-                <div className="relative h-1 w-full bg-slate-200 rounded-full group">
-                  <input 
-                    type="range" min="1" max="100" step="1" 
-                    value={params.maxRotations} 
-                    onChange={(e) => updateParams({ maxRotations: parseInt(e.target.value) })}
-                    onPointerUp={saveHistory}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                  />
-                  <div className="absolute top-0 left-0 h-full bg-blue-600 rounded-full" style={{ width: `${(params.maxRotations / 100) * 100}%` }}></div>
-                  <div className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full border-2 border-blue-600 shadow-md shadow-blue-550/20" style={{ left: `calc(${(params.maxRotations / 100) * 100}% - 6px)` }}></div>
-                </div>
-              </div>
-
               {/* Ring Profile Options */}
               <div className="space-y-4 pt-4 border-t border-slate-100">
                 <div className="flex justify-between items-center">
@@ -1892,32 +2043,12 @@ export default function App() {
             </div>
           </section>
 
-          {/* Gear & Path Type */}
+          {/* Gear Shapes */}
           <section>
             <h2 className="text-[11px] uppercase tracking-widest text-blue-600 mb-4 font-bold flex items-center gap-2 pt-4 border-t border-slate-100">
-              <Layers className="w-3.5 h-3.5" /> Gear & Flow Shapes
+              <Layers className="w-3.5 h-3.5" /> Gear Shapes
             </h2>
             <div className="space-y-6">
-              <div>
-                <h3 className="text-[10px] uppercase tracking-widest text-slate-500 mb-3 font-semibold">Geometric Flow</h3>
-                <div className="flex flex-col gap-2">
-                  <div className="grid grid-cols-2 gap-2">
-                    {(['hypotrochoid', 'epitrochoid'] as const).map(type => (
-                      <button 
-                        key={type}
-                        onClick={() => {
-                          updateParams({ type });
-                          saveHistory();
-                        }}
-                        className={`py-2 px-3 border rounded text-[9px] uppercase tracking-widest font-bold transition-all relative group ${params.type === type ? 'bg-blue-600 text-white border-blue-500 shadow-sm' : 'bg-slate-50/50 hover:bg-slate-50 border-slate-200/80 text-slate-600'}`}
-                      >
-                        {type === 'hypotrochoid' ? 'Internal' : 'External'}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
               <div>
                 <h3 className="text-[10px] uppercase tracking-widest text-slate-500 mb-3 font-semibold">Gear Shape</h3>
                 <div className="grid grid-cols-3 gap-2">

@@ -265,7 +265,7 @@ export function getSpiroTotalRotations(params: SpiroParams): number {
   const { 
     ringTeeth, 
     gearTeeth, 
-    maxRotations = 40,
+    maxRotations = 200,
     isMultiStage = false,
   } = params;
   
